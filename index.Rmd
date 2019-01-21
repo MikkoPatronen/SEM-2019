@@ -3,7 +3,7 @@ title: "Structural Equation Models 2019"
 author: "Mikko Patronen"
 output:
   html_document:
-    theme: paper
+    theme: lumen
     toc: true
     toc_depth: 2
     fig_caption: true

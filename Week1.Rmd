@@ -17,14 +17,14 @@ df <- ex3.1
 save(df, file="df.Rdata")
 
 
-Let us view a summary of the variables:
+Here is a summary of the variables:
 
 ```{r df}
 load("df.Rdata")
 summary(df)
 ```
 
-Then let us build the model according to instructions:
+Then a model was built according to instructions (y1 is the dependent variable, x1 and x3 are independent explanatory variables):
 
 ```{r}
 y1 <- df$V1
@@ -35,6 +35,10 @@ model <- lm(y1 ~ x1 + x3)
 summary(model)
 ```
 
-```{r pressure, echo=FALSE, fig.cap="Kuvateksti", out.width = '100%'}
-knitr::include_graphics("Screen Shot 2018-12-21 at 19.54.50.png")
+According to the results both covariates x1 and x3 are statistically significant (p < 0.001). The model explains around 60% of the variance in the variable y1 (Adjusted R-squared = 0.6075).
+
+Here is a graph of the model (drawn with Affinity Designer):
+
+```{r pressure, echo=FALSE, fig.cap="", out.width = '60%'}
+knitr::include_graphics("SEM1a.png")
 ```
