@@ -1,0 +1,20 @@
+---
+title: "Structural Equation Models 2019"
+author: "Mikko Patronen"
+output:
+  html_document:
+    theme: paper
+    toc: true
+    toc_depth: 2
+    fig_caption: true
+    fig_width: 6
+    fig_height: 4
+---
+
+
+***
+  
+```{r child = "Week1.Rmd"}
+```
+  
+***
