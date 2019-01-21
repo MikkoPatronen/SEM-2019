@@ -5,8 +5,12 @@ output: html_document
 
 ## Week 1
 
+
 #### Exercise 1.2
-#### a)
+
+
+#### a) LINEAR REGRESSION
+
 
 In this exercise a linear regression model was built for one continuous observed dependent variable (y1) with two covariates (x1 and x3). The data "ex3.1" was first manually imported into R and saved as .Rdata -file with R code lines:
 
@@ -35,10 +39,16 @@ model <- lm(y1 ~ x1 + x3)
 summary(model)
 ```
 
-According to the results both covariates x1 and x3 are statistically significant (p < 0.001). The model explains around 60% of the variance in the variable y1 (Adjusted R-squared = 0.6075).
+According to the results both covariates x1 and x3 are statistically significant (p < 0.001). They both have a positive effect on the variable y1: when x1 increases one unit, the variable y1 increases 0.97 units (when x3 is considered a constant) and when x3 increases one unit, the variable y1 increases 0.65 units (when x1 is considered a constant). The model explains around 60% of the variance in the variable y1 (Adjusted R-squared = 0.6075).
 
 Here is a graph of the model (drawn with Affinity Designer):
 
 ```{r pressure, echo=FALSE, fig.cap="", out.width = '60%'}
 knitr::include_graphics("SEM1a.png")
 ```
+
+
+
+
+#### b) EXPLORATORY FACTOR ANALYSIS
+
