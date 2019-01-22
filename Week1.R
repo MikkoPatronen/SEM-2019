@@ -6,7 +6,6 @@
 #
 # a)
 
-testi <- as.data.frame(ex3.1)
 df <- ex3.1
 save(df, file="df.Rdata")
 
@@ -19,17 +18,6 @@ summary(model)
 
 # b)
 df2 <- ex4.1a
-save(df2, file="df2.Rdata")
+colnames(df2) <- c("y1", "y2", "y3", "y4", "y5", "y6", "y7", "y8", "y9", "y10", "y11", "y12")
 
-y1 <- df2$V1
-y2 <- df2$V2
-y3 <- df2$V3
-y4 <- df2$V4
-y5 <- df2$V5
-y6 <- df2$V6
-y7 <- df2$V7
-y8 <- df2$V8
-y9 <- df2$V9
-y10 <- df2$V10
-y11 <- df2$V11
-y12 <- df2$V12
+save(df2, file="df2.Rdata")

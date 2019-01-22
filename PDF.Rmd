@@ -1,6 +1,8 @@
 ---
 title: "SEM 2019"
-output: html_document
+author: "Mikko Patronen"
+output: pdf_document
+date: "`r format(Sys.time(), '%d %B, %Y')`"
 ---
 
 ## Week 1
@@ -41,17 +43,14 @@ summary(model)
 
 According to the results both covariates x1 and x3 are statistically significant (p < 0.001). They both have a positive effect on the variable y1: when x1 increases one unit, the variable y1 increases 0.97 units (when x3 is considered a constant) and when x3 increases one unit, the variable y1 increases 0.65 units (when x1 is considered a constant). The model explains around 60% of the variance in the variable y1 (Adjusted R-squared = 0.6075).
 
+\smallbreak
+
+##### The graph of the model is on top of this page (drawn with Affinity Designer):
 
 
-Here is a graph of the model (drawn with Affinity Designer):
-
-
-
-```{r pressure, echo=FALSE, fig.cap="", out.width = '60%'}
+```{r pressure, echo=FALSE, fig.cap="", out.width = '70%'}
 knitr::include_graphics("SEM1a.png")
 ```
-
-
 
 
 #### b) EXPLORATORY FACTOR ANALYSIS
@@ -68,7 +67,6 @@ Let us view a summary of the data:
 
 ```{r df2}
 load("df2.Rdata")
-dim(df2)
 summary(df2)
 ```
 

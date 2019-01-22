@@ -3,12 +3,15 @@ title: "Structural Equation Models 2019"
 author: "Mikko Patronen"
 output:
   html_document:
-    theme: lumen
-    toc: true
-    toc_depth: 2
-    fig_caption: true
-    fig_width: 6
+    fig_caption: yes
     fig_height: 4
+    fig_width: 6
+    theme: lumen
+    toc: yes
+    toc_depth: 2
+  pdf_document: 
+    toc_depth: 2
+date: "`r format(Sys.time(), '%d %B, %Y')`"
 ---
 
 
