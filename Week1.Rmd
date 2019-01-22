@@ -72,14 +72,14 @@ dim(df2)
 summary(df2)
 ```
 
-The data consists of 500 rows and 12 columns. Let us conduct the exploratory factor analysis to learn about the factor structure of the data:
+The data consists of 500 rows and 12 columns. Let us conduct the exploratory factor analysis with 4 factors as instructed:
 
 ```{r}
 analysis <- factanal(df2, factors = 4)
 print(analysis)
 ```
 
-Based on these results the data contains four factors. This is also supported by the p-value (chi square statistic = 25.36, p = 0.386) which indicates that four factors are sufficient. A graph of the model is presented here:
+The hypothesis that four factors is sufficient is supported by the p-value (chi square statistic = 25.36, p = 0.386). A graph of the model is presented here:
 
 ```{r echo=FALSE, fig.cap="", out.width = '70%'}
 knitr::include_graphics("SEM1b.png")
