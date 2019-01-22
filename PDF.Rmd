@@ -1,25 +1,16 @@
 ---
-title: "SEM 2019"
+title: "SEM 2019 / WEEK 1: Exercise 1.2"
 author: "Mikko Patronen"
 output: pdf_document
 date: "`r format(Sys.time(), '%d %B, %Y')`"
 ---
-
-## Week 1
-
-
-#### Exercise 1.2
-
-
 #### a) LINEAR REGRESSION
-
 
 In this exercise a linear regression model was built for one continuous observed dependent variable (y1) with two covariates (x1 and x3). The data "ex3.1" was first manually imported into R and saved as .Rdata -file with R code lines:
 
 
 df <- ex3.1
-
-
+\
 save(df, file="df.Rdata")
 
 
@@ -77,7 +68,7 @@ analysis <- factanal(df2, factors = 4)
 print(analysis)
 ```
 
-Based on these results the data contains four factors. This is also supported by the p-value (chi square statistic = 25.36, p = 0.386) which indicates that four factors are sufficient. A graph of the model is presented on top of the page.
+Based on these results the data contains four factors. This is also supported by the p-value (chi square statistic = 25.36, p = 0.386) which indicates that four factors are sufficient. A graph of the model is presented on the next page.
 
 ```{r echo=FALSE, fig.cap="", out.width = '70%'}
 knitr::include_graphics("SEM1b.png")
