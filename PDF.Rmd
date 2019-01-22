@@ -77,7 +77,7 @@ analysis <- factanal(df2, factors = 4)
 print(analysis)
 ```
 
-Based on these results the data contains four factors. A graph of the model is presented here:
+Based on these results the data contains four factors. This is also supported by the p-value (chi square statistic = 25.36, p = 0.386) which indicates that four factors are sufficient. A graph of the model is presented on top of the page.
 
 ```{r echo=FALSE, fig.cap="", out.width = '70%'}
 knitr::include_graphics("SEM1b.png")
