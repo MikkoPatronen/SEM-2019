@@ -1,0 +1,129 @@
+---
+title: "Structural Equation Models 2019"
+output:
+  html_document: default
+---
+
+## Week 2
+
+
+#### Exercise 2.1
+
+The null hypothesis is that self-concept (SC) is a multidimensional construct composed of four factors:
+
+- General SC (GSC)
+
+- Academic SC (ASC)
+
+- English SC (ESC)
+
+- Mathematics SC (MSC)
+
+  
+Alternative hypothesis is that self-concept is not a multidimensional construct composed of four factors.
+
+
+Let us bring the data in R and prepare it for analysis:
+
+```{r}
+library(lavaan)
+library(semPlot)
+
+ex2.1 <- read.fortran(file = "ASC7INDM.DAT", c("40F1.0","X","6F2.0"))
+colnames(ex2.1) <- c("SPPCN08", "SPPCN18", "SPPCN28", "SPPCN38", "SPPCN48", 
+                     "SPPCN58", "SPPCN01", "SPPCN11" ,"SPPCN21", "SPPCN31", 
+                     "SPPCN41", "SPPCN51", "SPPCN06", "SPPCN16", "SPPCN26", 
+                     "SPPCN36", "SPPCN46", "SPPCN56", "SPPCN03", "SPPCN13", 
+                     "SPPCN23", "SPPCN33", "SPPCN43", "SPPCN53", "SDQ2N01", 
+                     "SDQ2N13", "SDQ2N25", "SDQ2N37", "SDQ2N04", "SDQ2N16", 
+                     "SDQ2N28", "SDQ2N40", "SDQ2N10", "SDQ2N22", "SDQ2N34", 
+                     "SDQ2N46", "SDQ2N07", "SDQ2N19", "SDQ2N31", "SDQ2N43", 
+                     "MASTENG1", "MASTMAT1", "TENG1", "TMAT1", "SENG1", "SMAT1")
+```
+
+
+Then let us specify the model, visualize the model structure:
+
+
+
+```{r}
+modelF4 <- "
+GSC =~ SDQ2N01 + SDQ2N13 + SDQ2N25 + SDQ2N37
+ASC =~ SDQ2N04 + SDQ2N16 + SDQ2N28 + SDQ2N40
+ESC =~ SDQ2N10 + SDQ2N22 + SDQ2N34 + SDQ2N46
+MSC =~ SDQ2N07 + SDQ2N19 + SDQ2N31 + SDQ2N43
+"
+
+fitF4 <- cfa(modelF4, data = ex2.1)
+
+semPaths(fitF4, layout='tree2')
+
+summary(fitF4, fit.measures = T)
+```
+
+The hypothesis that SC has four factors is not supported by the results (chi square statistic = 159.112, p = 0.000), which suggest that the fit of the data to the model is not adequate and null hypothesis should be rejected. However, the indices CFI (0.961), TLI (0.953) and RMSEA (0.049) support the null hypothesis. 
+
+
+
+
+#### Exercise 2.2
+
+##### a) Hypothesis 2:
+
+The null hypothesis is that SC has two factors:
+
+- General SC (GSC)
+
+- Academic SC (ASC)
+
+
+Alternative hypothesis is that SC does not have two factors. Let us form the model and visualize the model structure:
+
+```{r}
+modelF2 <- "
+GSC =~ SDQ2N01 + SDQ2N13 + SDQ2N25 + SDQ2N37
+ASC =~ SDQ2N04 + SDQ2N16 + SDQ2N28 + SDQ2N40
++ SDQ2N10 + SDQ2N22 + SDQ2N34 + SDQ2N46
++ SDQ2N07 + SDQ2N19 + SDQ2N31 + SDQ2N43
+"
+
+fitF2 <- cfa(modelF2, data = ex2.1)
+
+semPaths(fitF2, layout='tree2')
+
+summary(fitF2, fit.measures = T)
+```
+
+
+The hypothesis that SC has two factors is not supported by the results (chi square statistic = 457.653, p = 0.000), which suggest that the fit of the data to the model is not adequate and null hypothesis should be rejected. In addition the indices CFI (0.776), TLI (0.739) and RMSEA (0.144) are not supporting the null hypothesis.
+
+
+
+##### b) Hypothesis 3:
+
+The null hypothesis is that SC is unidimensional (only one SC factor).
+
+Alternative hypothesis is that SC is not unidimensional. Let us form the model and visualize the model structure:
+
+```{r}
+modelF1 <- "
+SC =~ SDQ2N01 + SDQ2N13 + SDQ2N25 + SDQ2N37
++ SDQ2N04 + SDQ2N16 + SDQ2N28 + SDQ2N40
++ SDQ2N10 + SDQ2N22 + SDQ2N34 + SDQ2N46
++ SDQ2N07 + SDQ2N19 + SDQ2N31 + SDQ2N43
+"
+
+fitF1 <- cfa(modelF1, data = ex2.1)
+
+semPaths(fitF1, layout='tree2')
+
+summary(fitF1, fit.measures = T)
+```
+
+
+The hypothesis that SC is unidimensional is not supported by the results (chi square statistic = 531.918, p = 0.000), which suggest that the fit of the data to the model is not adequate and null hypothesis should be rejected. In addition the indices CFI (0.730), TLI (0.688) and RMSEA (0.125) are not supporting the null hypothesis. 
+
+
+Overall the best fit of these three models is the first one with four factors since it is the only model that had at least some support for the model fit.
+
+

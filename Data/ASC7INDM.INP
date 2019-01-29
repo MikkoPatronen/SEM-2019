@@ -1,0 +1,48 @@
+TITLE: CFA of Academic SC Structure for Grade 7 Adolescents
+       (Byrne 2012, p. 56)
+
+! NOTE by Kimmo:
+! In the book, the TITLE, DATA, VARIABLE and ANALYSIS parts are
+! obtained by using the "Language Generator" (see pp.48-55 in
+! ch3 and p.26 in ch2, where Byrne says that it is "a very helpful
+! feature of the Mplus program as it makes the building of input
+! files very easy". I disagree, but you may give it a try! :)
+!
+! By the way, the back cover of Byrne's book makes a promise:
+! "corresponding data and syntax files available at ...", but
+! I could only find the data files, so I have written each of
+! these manually - please enjoy!
+
+DATA:
+  FILE IS "ASC7INDM.DAT";
+  FORMAT IS 40F1.0,X,6F2.0;
+
+VARIABLE:
+NAMES ARE
+SPPCN08 SPPCN18 SPPCN28 SPPCN38 SPPCN48 SPPCN58 SPPCN01 SPPCN11
+SPPCN21 SPPCN31 SPPCN41 SPPCN51 SPPCN06 SPPCN16 SPPCN26 SPPCN36
+SPPCN46 SPPCN56 SPPCN03 SPPCN13 SPPCN23 SPPCN33 SPPCN43 SPPCN53
+
+SDQ2N01 SDQ2N13 SDQ2N25 SDQ2N37 SDQ2N04 SDQ2N16 SDQ2N28 SDQ2N40
+SDQ2N10 SDQ2N22 SDQ2N34 SDQ2N46 SDQ2N07 SDQ2N19 SDQ2N31 SDQ2N43
+
+MASTENG1 MASTMAT1 TENG1 TMAT1 SENG1 SMAT1;
+
+USEVARIABLES ARE
+SDQ2N01 SDQ2N13 SDQ2N25 SDQ2N37 SDQ2N04 SDQ2N16 SDQ2N28 SDQ2N40
+SDQ2N10 SDQ2N22 SDQ2N34 SDQ2N46 SDQ2N07 SDQ2N19 SDQ2N31 SDQ2N43;
+
+ANALYSIS:
+  TYPE IS GENERAL;
+  ESTIMATOR IS ML;
+  ITERATIONS = 1000;
+  CONVERGENCE = 0.00005;
+
+MODEL:
+F1 by SDQ2N01-SDQ2N37;
+F2 by SDQ2N04-SDQ2N40;
+F3 by SDQ2N10-SDQ2N46;
+F4 by SDQ2N07-SDQ2N43;
+
+OUTPUT: SAMPSTAT MODINDICES STANDARDIZED TECH1;
+
