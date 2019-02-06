@@ -1,0 +1,164 @@
+---
+title: "Structural Equation Models 2019 / WEEK 3"
+author: "Mikko Patronen"
+output: pdf_document
+date: "`r format(Sys.time(), '%d %B, %Y')`"
+---
+
+#### Exercise 3.1
+
+The null hypothesis is that burnout is a multidimensional construct composed of three factors:
+
+- Emotional Exhaustion (EE)
+
+- Depersonalization (DP)
+
+- Personal Accomplishment (PA)
+
+
+  
+Alternative hypothesis is that burnout is not a multidimensional construct composed of three factors.
+
+
+Let us bring the data in R and prepare it for analysis:
+
+```{r}
+library(psych)
+library(likert)
+library(lavaan)
+
+viikko3 <- read.fortran(file = "ELEMM1.DAT", c("22F1.0"))
+colnames(viikko3) <- c("ITEM1", "ITEM2", "ITEM3", "ITEM4", "ITEM5",
+                   "ITEM6", "ITEM7", "ITEM8", "ITEM9", "ITEM10",
+                   "ITEM11", "ITEM12", "ITEM13", "ITEM14",
+                   "ITEM15", "ITEM16", "ITEM17", "ITEM18",
+                   "ITEM19", "ITEM20", "ITEM21", "ITEM22")
+```
+
+Then let us do some EDA to see whether the items are normally distributed: 
+
+```{r}
+describe(viikko3)
+```
+
+The skewness and kurtosis values for basicly all the items indicate that none of the items are normally distributed and therefore the maximum likelihood estimators are not suited for the task. Let us visualize the distributions of the items:
+
+```{r}
+vk3 <- viikko3
+
+vk3$ITEM1 = factor(vk3$ITEM1,
+                   levels = c("1", "2", "3", "4", "5", "6", "7"),
+                   ordered = TRUE)
+vk3$ITEM2 = factor(vk3$ITEM2,
+                   levels = c("1", "2", "3", "4", "5", "6", "7"),
+                   ordered = TRUE)
+vk3$ITEM3 = factor(vk3$ITEM3,
+                   levels = c("1", "2", "3", "4", "5", "6", "7"),
+                   ordered = TRUE)
+vk3$ITEM4 = factor(vk3$ITEM4,
+                   levels = c("1", "2", "3", "4", "5", "6", "7"),
+                   ordered = TRUE)
+vk3$ITEM5 = factor(vk3$ITEM5,
+                   levels = c("1", "2", "3", "4", "5", "6", "7"),
+                   ordered = TRUE)
+vk3$ITEM6 = factor(vk3$ITEM6,
+                   levels = c("1", "2", "3", "4", "5", "6", "7"),
+                   ordered = TRUE)
+vk3$ITEM7 = factor(vk3$ITEM7,
+                   levels = c("1", "2", "3", "4", "5", "6", "7"),
+                   ordered = TRUE)
+vk3$ITEM8 = factor(vk3$ITEM8,
+                   levels = c("1", "2", "3", "4", "5", "6", "7"),
+                   ordered = TRUE)
+vk3$ITEM9 = factor(vk3$ITEM9,
+                   levels = c("1", "2", "3", "4", "5", "6", "7"),
+                   ordered = TRUE)
+vk3$ITEM10 = factor(vk3$ITEM10,
+                   levels = c("1", "2", "3", "4", "5", "6", "7"),
+                   ordered = TRUE)
+vk3$ITEM11 = factor(vk3$ITEM11,
+                   levels = c("1", "2", "3", "4", "5", "6", "7"),
+                   ordered = TRUE)
+vk3$ITEM12 = factor(vk3$ITEM12,
+                   levels = c("1", "2", "3", "4", "5", "6", "7"),
+                   ordered = TRUE)
+vk3$ITEM13 = factor(vk3$ITEM13,
+                   levels = c("1", "2", "3", "4", "5", "6", "7"),
+                   ordered = TRUE)
+vk3$ITEM14 = factor(vk3$ITEM14,
+                   levels = c("1", "2", "3", "4", "5", "6", "7"),
+                   ordered = TRUE)
+vk3$ITEM15 = factor(vk3$ITEM15,
+                   levels = c("1", "2", "3", "4", "5", "6", "7"),
+                   ordered = TRUE)
+vk3$ITEM16 = factor(vk3$ITEM16,
+                   levels = c("1", "2", "3", "4", "5", "6", "7"),
+                   ordered = TRUE)
+vk3$ITEM17 = factor(vk3$ITEM17,
+                   levels = c("1", "2", "3", "4", "5", "6", "7"),
+                   ordered = TRUE)
+vk3$ITEM18 = factor(vk3$ITEM18,
+                   levels = c("1", "2", "3", "4", "5", "6", "7"),
+                   ordered = TRUE)
+vk3$ITEM19 = factor(vk3$ITEM19,
+                   levels = c("1", "2", "3", "4", "5", "6", "7"),
+                   ordered = TRUE)
+vk3$ITEM20 = factor(vk3$ITEM20,
+                   levels = c("1", "2", "3", "4", "5", "6", "7"),
+                   ordered = TRUE)
+vk3$ITEM21 = factor(vk3$ITEM21,
+                   levels = c("1", "2", "3", "4", "5", "6", "7"),
+                   ordered = TRUE)
+vk3$ITEM22 = factor(vk3$ITEM22,
+                   levels = c("1", "2", "3", "4", "5", "6", "7"),
+                   ordered = TRUE)
+
+
+Result = likert(vk3)
+
+plot(Result,
+     type="bar")
+```
+
+The visualization also shows that the items are not normally distributed.
+
+#### ML estimator
+
+Then let us specify the model according to instructions and visualize the model structure using ML estimator:
+
+```{r}
+model_MBI <- "
+EE =~ ITEM1 + ITEM2 + ITEM3 + ITEM6 + ITEM8 + ITEM13 + ITEM14 + ITEM16 + ITEM20
+DP =~ ITEM5 + ITEM10 + ITEM11 + ITEM15 + ITEM22
+PA =~ ITEM4 + ITEM7 + ITEM9 + ITEM12 + ITEM17 + ITEM18 + ITEM19 + ITEM21
+"
+```
+
+
+```{r}
+fit_ML <- cfa(model_MBI, data = viikko3)
+summary(fit_ML, fit.measures = T)
+
+library(semPlot)
+semPaths(fit_ML, layout='tree2')
+```
+
+The hypothesis that burnout has three factors is not supported by the results (chi square statistic = 695.719, p = 0.000), which suggest that the fit of the data to the model is not adequate and null hypothesis should be rejected. Also the indices CFI (0.848), TLI (0.83) support against hypothesis. However, RMSEA (0.08) modestly supports the null hypothesis. 
+
+#### MLM estimator
+
+Then let us test the model fit with MLM estimator:
+
+```{r}
+fit_MLM <- cfa(model_MBI, data = viikko3, estimator="MLM")
+summary(fit_MLM, fit.measures = T)
+
+semPaths(fit_MLM, layout='tree2')
+```
+
+With this estimator the hypothesis that burnout has three factors is also not supported by the results (chi square statistic = 567.753, p = 0.000), which suggest that the fit of the data to the model is not adequate and null hypothesis should be rejected. Here the indices increase small amounts CFI (0.865), TLI (0.849) and RMSEA decreases small amount (0.076) but still these indices support against hypothesis.
+
+
+#### Exercise 3.2
+
+Unfortunately I wasted a huge amount of time with solving R error message that had to do with lavaan and sem -packages. The sem -package was causing problems that made R to not "find  file" when using cfa. I managed to solve this problem just in time before deadline but unfortunately I did not have enough time to do this second excercise. But I learned a lot of R instead :D

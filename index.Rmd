@@ -26,3 +26,8 @@ date: "`r format(Sys.time(), '%d %B, %Y')`"
 ```
   
 ***
+  
+```{r child = "Week3.Rmd"}
+```
+  
+***
