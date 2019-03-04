@@ -1,0 +1,711 @@
+---
+title: "Structural Equation Models 2019 / WEEK 6"
+author: "Mikko Patronen"
+output: pdf_document
+date: "`r format(Sys.time(), '%d %B, %Y')`"
+---
+
+### Exercise 6
+
+First let us import the data file in R and prepare it for the excercises.
+
+```{r}
+library(lavaan); library(semPlot); library(dplyr); library(knitr)
+
+E1 <- read.table("ELEMIND1.txt") # calibration group
+E2 <- read.table("ELEMIND2.txt") # validation group
+
+# name the variables
+variables <- c("ROLEA1", "ROLEA2", "ROLEC1", "ROLEC2", "WORK1", "WORK2",
+               "CCLIM1", "CCLIM2", "CCLIM3", "CCLIM4", "DEC1", "DEC2",
+               "SSUP1", "SSUP2", "PSUP1", "PSUP2", "SELF1", "SELF2",
+               "SELF3", "ELC1", "ELC2", "ELC3", "ELC4", "ELC5",
+               "EE1", "EE2", "EE3", "DP1", "DP2", "PA1", "PA2", "PA3")
+
+names(E2) <- names(E1) <- variables
+```
+
+### Exercise 6.1
+
+Let us specify and establish a well-fitting and parsimonious baseline model for the calibration group. We begin with the hypothesized model:
+
+### Hypothesized model:
+```{r}
+model <- '
+RA  =~ ROLEA1 + ROLEA2
+RC  =~ ROLEC1 + ROLEC2
+WO  =~ WORK1 + WORK2
+CC  =~ CCLIM1 + CCLIM2 + CCLIM3 + CCLIM4
+DM  =~ DEC1 + DEC2
+SS  =~ SSUP1 + SSUP2
+PS  =~ PSUP1 + PSUP2
+SE  =~ SELF1 + SELF2 + SELF3
+ELC  =~ ELC1 + ELC2 + ELC3 + ELC4 + ELC5
+EE  =~ EE1 + EE2 + EE3
+DP  =~ DP1 + DP2
+PA  =~ PA1 + PA2 + PA3
+
+SE ~ DM + SS + PS
+ELC ~ DM
+EE ~ RC + WO + CC 
+DP ~ RC + EE
+PA ~ RA + SE + ELC + EE + DP
+'
+
+fit <- sem(model, data = E1, estimator="MLM")
+```
+First we draw the hypothesized model in Figure 1.
+
+The factor names are as follows:
+
+
+- RA = Role ambiguity
+- RC = Role conflict
+- WO = Work overload
+- CC = Classroom climate
+- DM = Decision-making
+- SS = Superior support
+- PS = Peer support
+- SE = Self-esteem
+- ELC = External locus of control
+- EE = Emotional exhaustion
+- DP = Depersonalization
+- PA = Personal accomplishment
+
+
+```{r}
+semPaths(fit, what = "path", whatLabels = "hide", style = "lisrel", label.scale = F,
+         layout = "tree2", residuals = TRUE, nCharNodes = 0, rotation = 2, 
+         sizeMan = 5, sizeMan2= 2, sizeLat = 6, sizeLat2 = 4, esize = 1, label.cex = 0.4,
+         optimizeLatRes = TRUE, edge.label.cex=0.4, reorder=T, exoCov = FALSE)
+title("Figure 1: Hypothesized model")
+```
+
+Let us view the standardized covariance estimates exceeding the value of 1:
+
+```{r}
+parameterestimates(fit, standardized = TRUE) %>%
+  filter(op == "~~", std.all > 1) %>%
+  select("Item/Factor"=lhs, op, "Item/Factor"=rhs, "Est.covariance"=est, 
+         "Std.covariance"=std.all, pvalue) %>%
+  kable(digits=3, caption="Covariance estimates of the initial model that exceed 1")
+```
+
+Table 1 shows that the standardized covariance of factors RC and WO is 1.005, which means the factors are representing the same construct. Therefore we can combine them. Let us specify a new model and view a graph of the model:
+
+### Modified model:
+
+```{r}
+# Modified model (combined factors RC and WO)
+model_modif <-'
+RA  =~ ROLEA1 + ROLEA2
+RCWO  =~ ROLEC1 + ROLEC2 + WORK1 + WORK2
+CC  =~ CCLIM1 + CCLIM2 + CCLIM3 + CCLIM4
+DM  =~ DEC1 + DEC2
+SS  =~ SSUP1 + SSUP2
+PS  =~ PSUP1 + PSUP2
+SE  =~ SELF1 + SELF2 + SELF3
+ELC  =~ ELC1 + ELC2 + ELC3 + ELC4 + ELC5
+EE  =~ EE1 + EE2 + EE3
+DP  =~ DP1 + DP2
+PA  =~ PA1 + PA2 + PA3
+
+SE ~ DM + SS + PS
+ELC ~ DM
+EE ~ RCWO + CC 
+DP ~ RCWO + EE
+PA ~ RA + SE + ELC + EE + DP
+'
+
+fit.mod <- sem(model_modif, data = E1, estimator="MLM")
+
+semPaths(fit.mod, what = "path", whatLabels = "hide", style = "lisrel", label.scale = F,
+         layout = "tree2", residuals = TRUE, nCharNodes = 0, rotation = 2, 
+         sizeMan = 5, sizeMan2= 2, sizeLat = 6, sizeLat2 = 4, esize = 1, label.cex = 0.4,
+         optimizeLatRes = TRUE, edge.label.cex=0.4, reorder=T, exoCov = FALSE)
+title("Figure 2: Modified model")
+```
+
+Let us view the fit measures of the modified model:
+
+```{r}
+model <- c("Modified")
+
+chisq = fitMeasures(fit.mod, "chisq.scaled")
+df = fitMeasures(fit.mod, "df.scaled")
+pvalue = fitMeasures(fit.mod, "pvalue.scaled")
+cfi = fitMeasures(fit.mod, "cfi.robust") %>% round(3)
+tli = fitMeasures(fit.mod, "tli.robust") %>% round(3)
+rmsea = fitMeasures(fit.mod, "rmsea.robust") %>% round(3)
+srmr = fitMeasures(fit.mod, "srmr") %>% round(3) 
+tabledata <- data.frame("Model"=model, "Chi.square"=chisq, "Df"=df, "p-value"=pvalue, 
+                        "CFI"=cfi, "TLI"=tli, "RMSEA"=rmsea, "SRMR"=srmr) 
+kable(tabledata, row.names = F, caption = "Fit indices (Modified model)") 
+```
+
+The fit indices indicate that the fit is not good - let us view modification indices:
+
+```{r}
+mi <- modindices(fit.mod, standardized = T, minimum.value = 35, sort. = T)
+mi
+```
+
+According to MI's we should refine the model by adding ELC ~ RCWO. Let us do that:
+
+### Modified model 2:
+
+```{r}
+# Modified model 2 (add ELC ~ RCWO)
+model_modif2 <-'
+RA  =~ ROLEA1 + ROLEA2
+RCWO  =~ ROLEC1 + ROLEC2 + WORK1 + WORK2
+CC  =~ CCLIM1 + CCLIM2 + CCLIM3 + CCLIM4
+DM  =~ DEC1 + DEC2
+SS  =~ SSUP1 + SSUP2
+PS  =~ PSUP1 + PSUP2
+SE  =~ SELF1 + SELF2 + SELF3
+ELC  =~ ELC1 + ELC2 + ELC3 + ELC4 + ELC5
+EE  =~ EE1 + EE2 + EE3
+DP  =~ DP1 + DP2
+PA  =~ PA1 + PA2 + PA3
+
+SE ~ DM + SS + PS
+ELC ~ DM + RCWO
+EE ~ RCWO + CC 
+DP ~ RCWO + EE
+PA ~ RA + SE + ELC + EE + DP
+'
+
+fit.mod2 <- sem(model_modif2, data = E1, estimator="MLM")
+
+# Fit indices
+model <- c("Modified", "Modified 2")
+chisq = c(fitMeasures(fit.mod, "chisq.scaled"),
+          fitMeasures(fit.mod2, "chisq.scaled"))
+df = c(fitMeasures(fit.mod, "df.scaled"), 
+       fitMeasures(fit.mod2, "df.scaled"))
+pvalue = c(fitMeasures(fit.mod, "pvalue.scaled"), 
+           fitMeasures(fit.mod2, "pvalue.scaled"))
+cfi = c(fitMeasures(fit.mod, "cfi.robust"), 
+        fitMeasures(fit.mod2, "cfi.robust")) %>% round(3)
+tli = c(fitMeasures(fit.mod, "tli.robust"), 
+        fitMeasures(fit.mod2, "tli.robust")) %>% round(3)
+rmsea = c(fitMeasures(fit.mod, "rmsea.robust"), 
+          fitMeasures(fit.mod2, "rmsea.robust")) %>% round(3)
+srmr = c(fitMeasures(fit.mod, "srmr"), 
+         fitMeasures(fit.mod2, "srmr")) %>% round(3) 
+tabledata <- data.frame("Model"=model, "Chi.square"=chisq, "Df"=df, "p-value"=pvalue, 
+                        "CFI"=cfi, "TLI"=tli, "RMSEA"=rmsea, "SRMR"=srmr) 
+kable(tabledata, row.names = F, caption = "Fit indices (Modified models)") 
+
+```
+
+The fit improved a lot, but we can still refine the model. Let us print the modification indices:
+
+```{r}
+mi2 <- modindices(fit.mod2, standardized = T, minimum.value = 35, sort. = T)
+mi2
+```
+
+The highest MI value suggests that in the next step we should allow the residual covariance between EE1 and EE2:
+
+### Modified model 3:
+
+```{r}
+# Modified model 3 (add EE1 ~~ EE2)
+model_modif3 <-'
+RA  =~ ROLEA1 + ROLEA2
+RCWO  =~ ROLEC1 + ROLEC2 + WORK1 + WORK2
+CC  =~ CCLIM1 + CCLIM2 + CCLIM3 + CCLIM4
+DM  =~ DEC1 + DEC2
+SS  =~ SSUP1 + SSUP2
+PS  =~ PSUP1 + PSUP2
+SE  =~ SELF1 + SELF2 + SELF3
+ELC  =~ ELC1 + ELC2 + ELC3 + ELC4 + ELC5
+EE  =~ EE1 + EE2 + EE3
+DP  =~ DP1 + DP2
+PA  =~ PA1 + PA2 + PA3
+
+SE ~ DM + SS + PS
+ELC ~ DM + RCWO
+EE ~ RCWO + CC 
+DP ~ RCWO + EE
+PA ~ RA + SE + ELC + EE + DP
+
+EE1 ~~ EE2
+'
+
+fit.mod3 <- sem(model_modif3, data = E1, estimator="MLM")
+
+# Fit indices
+model <- c("Modified", "Modified 2", "Modified 3")
+chisq = c(fitMeasures(fit.mod, "chisq.scaled"),
+          fitMeasures(fit.mod2, "chisq.scaled"), 
+          fitMeasures(fit.mod3, "chisq.scaled"))
+df = c(fitMeasures(fit.mod, "df.scaled"), 
+       fitMeasures(fit.mod2, "df.scaled"), 
+       fitMeasures(fit.mod3, "df.scaled"))
+pvalue = c(fitMeasures(fit.mod, "pvalue.scaled"), 
+           fitMeasures(fit.mod2, "pvalue.scaled"), 
+           fitMeasures(fit.mod3, "pvalue.scaled"))
+cfi = c(fitMeasures(fit.mod, "cfi.robust"), 
+        fitMeasures(fit.mod2, "cfi.robust"), 
+        fitMeasures(fit.mod3, "cfi.robust")) %>% round(3)
+tli = c(fitMeasures(fit.mod, "tli.robust"), 
+        fitMeasures(fit.mod2, "tli.robust"), 
+        fitMeasures(fit.mod3, "tli.robust")) %>% round(3)
+rmsea = c(fitMeasures(fit.mod, "rmsea.robust"), 
+          fitMeasures(fit.mod2, "rmsea.robust"), 
+          fitMeasures(fit.mod3, "rmsea.robust")) %>% round(3)
+srmr = c(fitMeasures(fit.mod, "srmr"), 
+         fitMeasures(fit.mod2, "srmr"), 
+         fitMeasures(fit.mod3, "srmr")) %>% round(3) 
+tabledata <- data.frame("Model"=model, "Chi.square"=chisq, "Df"=df, "p-value"=pvalue, 
+                        "CFI"=cfi, "TLI"=tli, "RMSEA"=rmsea, "SRMR"=srmr) 
+kable(tabledata, row.names = F, caption = "Fit indices (Modified models)") 
+```
+
+The model fit seems quite good at this round. Let us view the MI´s:
+
+```{r}
+mi3 <- modindices(fit.mod3, standardized = T, minimum.value = 30, sort. = T)
+mi3
+```
+
+There are no MI values larger than 30. 
+
+```{r}
+parameterEstimates(fit.mod3, standardized = T) %>%
+  filter(op == "~") %>%
+  select("Factor"=lhs, op, "Factor"=rhs, "Beta"=std.all, "p-value"=pvalue) %>%
+  kable(digits = 3, format = "pandoc", caption = "Standardized estimates")
+```
+
+There are five statistically non-significant parameters that can be deleted from the model. They are SE ~ PS, ELC ~ DM, DP ~ RCWO, PA ~ RA and PA ~ ELC.
+
+### Modified model 4:
+
+```{r}
+# Modified model 4 
+# (remove SE ~ PS, ELC ~ DM, DP ~ RCWO, PA ~ RA and PA ~ ELC)
+model_modif4 <-'
+RA  =~ ROLEA1 + ROLEA2
+RCWO  =~ ROLEC1 + ROLEC2 + WORK1 + WORK2
+CC  =~ CCLIM1 + CCLIM2 + CCLIM3 + CCLIM4
+DM  =~ DEC1 + DEC2
+SS  =~ SSUP1 + SSUP2
+PS  =~ PSUP1 + PSUP2
+SE  =~ SELF1 + SELF2 + SELF3
+ELC  =~ ELC1 + ELC2 + ELC3 + ELC4 + ELC5
+EE  =~ EE1 + EE2 + EE3
+DP  =~ DP1 + DP2
+PA  =~ PA1 + PA2 + PA3
+
+SE ~ DM + SS
+ELC ~ RCWO
+EE ~ RCWO + CC 
+DP ~ EE
+PA ~ SE + EE + DP
+
+EE1 ~~ EE2
+'
+
+fit.mod4 <- sem(model_modif4, data = E1, estimator="MLM")
+
+# Fit indices
+model <- c("Modified", "Modified 2", "Modified 3", "Modified 4")
+chisq = c(fitMeasures(fit.mod, "chisq.scaled"),
+          fitMeasures(fit.mod2, "chisq.scaled"), 
+          fitMeasures(fit.mod3, "chisq.scaled"), 
+          fitMeasures(fit.mod4, "chisq.scaled"))
+df = c(fitMeasures(fit.mod, "df.scaled"), 
+       fitMeasures(fit.mod2, "df.scaled"), 
+       fitMeasures(fit.mod3, "df.scaled"), 
+       fitMeasures(fit.mod4, "df.scaled"))
+pvalue = c(fitMeasures(fit.mod, "pvalue.scaled"), 
+           fitMeasures(fit.mod2, "pvalue.scaled"), 
+           fitMeasures(fit.mod3, "pvalue.scaled"), 
+           fitMeasures(fit.mod4, "pvalue.scaled"))
+cfi = c(fitMeasures(fit.mod, "cfi.robust"), 
+        fitMeasures(fit.mod2, "cfi.robust"), 
+        fitMeasures(fit.mod3, "cfi.robust"), 
+        fitMeasures(fit.mod4, "cfi.robust")) %>% round(3)
+tli = c(fitMeasures(fit.mod, "tli.robust"), 
+        fitMeasures(fit.mod2, "tli.robust"), 
+        fitMeasures(fit.mod3, "tli.robust"), 
+        fitMeasures(fit.mod4, "tli.robust")) %>% round(3)
+rmsea = c(fitMeasures(fit.mod, "rmsea.robust"), 
+          fitMeasures(fit.mod2, "rmsea.robust"), 
+          fitMeasures(fit.mod3, "rmsea.robust"), 
+          fitMeasures(fit.mod4, "rmsea.robust")) %>% round(3)
+srmr = c(fitMeasures(fit.mod, "srmr"), 
+         fitMeasures(fit.mod2, "srmr"), 
+         fitMeasures(fit.mod3, "srmr"), 
+         fitMeasures(fit.mod4, "srmr")) %>% round(3) 
+tabledata <- data.frame("Model"=model, "Chi.square"=chisq, "Df"=df, "p-value"=pvalue, 
+                        "CFI"=cfi, "TLI"=tli, "RMSEA"=rmsea, "SRMR"=srmr) 
+kable(tabledata, row.names = F, caption = "Fit indices (Modified models)") 
+```
+
+The model fit did not improve, but we got rid of unnecessary non-significant factors. Now there are factors RA (Role ambiguity) and PS (Peer support) that are not related to other factors, so they can be removed from the model in the next step.
+
+### Modified model 5:
+
+```{r}
+# Modified model 5 (remove RA and PS)
+model_modif5 <-'
+# RA  =~ ROLEA1 + ROLEA2
+RCWO  =~ ROLEC1 + ROLEC2 + WORK1 + WORK2
+CC  =~ CCLIM1 + CCLIM2 + CCLIM3 + CCLIM4
+DM  =~ DEC1 + DEC2
+SS  =~ SSUP1 + SSUP2
+# PS  =~ PSUP1 + PSUP2
+SE  =~ SELF1 + SELF2 + SELF3
+ELC  =~ ELC1 + ELC2 + ELC3 + ELC4 + ELC5
+EE  =~ EE1 + EE2 + EE3
+DP  =~ DP1 + DP2
+PA  =~ PA1 + PA2 + PA3
+
+SE ~ DM + SS
+ELC ~ RCWO
+EE ~ RCWO + CC 
+DP ~ EE
+PA ~ SE + EE + DP
+
+EE1 ~~ EE2
+'
+
+fit.mod5 <- sem(model_modif5, data = E1, estimator="MLM")
+
+# Fit indices
+model <- c("Modified", "Modified 2", "Modified 3", "Modified 4", "Modified 5")
+chisq = c(fitMeasures(fit.mod, "chisq.scaled"),
+          fitMeasures(fit.mod2, "chisq.scaled"), 
+          fitMeasures(fit.mod3, "chisq.scaled"), 
+          fitMeasures(fit.mod4, "chisq.scaled"), 
+          fitMeasures(fit.mod5, "chisq.scaled"))
+df = c(fitMeasures(fit.mod, "df.scaled"), 
+       fitMeasures(fit.mod2, "df.scaled"), 
+       fitMeasures(fit.mod3, "df.scaled"), 
+       fitMeasures(fit.mod4, "df.scaled"), 
+       fitMeasures(fit.mod5, "df.scaled"))
+pvalue = c(fitMeasures(fit.mod, "pvalue.scaled"), 
+           fitMeasures(fit.mod2, "pvalue.scaled"), 
+           fitMeasures(fit.mod3, "pvalue.scaled"), 
+           fitMeasures(fit.mod4, "pvalue.scaled"), 
+           fitMeasures(fit.mod5, "pvalue.scaled"))
+cfi = c(fitMeasures(fit.mod, "cfi.robust"), 
+        fitMeasures(fit.mod2, "cfi.robust"), 
+        fitMeasures(fit.mod3, "cfi.robust"), 
+        fitMeasures(fit.mod4, "cfi.robust"), 
+        fitMeasures(fit.mod5, "cfi.robust")) %>% round(3)
+tli = c(fitMeasures(fit.mod, "tli.robust"), 
+        fitMeasures(fit.mod2, "tli.robust"), 
+        fitMeasures(fit.mod3, "tli.robust"), 
+        fitMeasures(fit.mod4, "tli.robust"), 
+        fitMeasures(fit.mod5, "tli.robust")) %>% round(3)
+rmsea = c(fitMeasures(fit.mod, "rmsea.robust"), 
+          fitMeasures(fit.mod2, "rmsea.robust"), 
+          fitMeasures(fit.mod3, "rmsea.robust"), 
+          fitMeasures(fit.mod4, "rmsea.robust"), 
+          fitMeasures(fit.mod5, "rmsea.robust")) %>% round(3)
+srmr = c(fitMeasures(fit.mod, "srmr"), 
+         fitMeasures(fit.mod2, "srmr"), 
+         fitMeasures(fit.mod3, "srmr"), 
+         fitMeasures(fit.mod4, "srmr"), 
+         fitMeasures(fit.mod5, "srmr")) %>% round(3) 
+tabledata <- data.frame("Model"=model, "Chi.square"=chisq, "Df"=df, "p-value"=pvalue, 
+                        "CFI"=cfi, "TLI"=tli, "RMSEA"=rmsea, "SRMR"=srmr) 
+kable(tabledata, row.names = F, caption = "Fit indices (Modified models)") 
+```
+
+The fit indices from table 7 indicate that the fit did not improve with this model. Let us view the standardized estimates:
+
+```{r}
+parameterEstimates(fit.mod5, standardized = T) %>%
+  select("Item"=lhs, op, "Item"=rhs, "B"=est, "SE"=se, 
+         "Z"=z, "p-value"=pvalue, "Beta"=std.all) %>%
+  kable(digits = 3, format = "pandoc", caption = "Standardized estimates")
+```
+
+The output reveals an estimated residual covariance between ELC and PA, which was not specified in the model. We fix it to zero in the next model:
+
+### Modified model 6:
+
+```{r}
+# Modified model 6 (fix ELC ~~ PA to zero) 
+model_modif6 <-'
+# RA  =~ ROLEA1 + ROLEA2
+RCWO  =~ ROLEC1 + ROLEC2 + WORK1 + WORK2
+CC  =~ CCLIM1 + CCLIM2 + CCLIM3 + CCLIM4
+DM  =~ DEC1 + DEC2
+SS  =~ SSUP1 + SSUP2
+# PS  =~ PSUP1 + PSUP2
+SE  =~ SELF1 + SELF2 + SELF3
+ELC  =~ ELC1 + ELC2 + ELC3 + ELC4 + ELC5
+EE  =~ EE1 + EE2 + EE3
+DP  =~ DP1 + DP2
+PA  =~ PA1 + PA2 + PA3
+
+SE ~ DM + SS
+ELC ~ RCWO
+EE ~ RCWO + CC 
+DP ~ EE
+PA ~ SE + EE + DP
+
+EE1 ~~ EE2
+ELC~~0*PA
+'
+
+fit.mod6 <- sem(model_modif6, data = E1, estimator="MLM")
+
+# Fit indices
+model <- c("Modified", "Modified 2", "Modified 3", 
+           "Modified 4", "Modified 5", "Modified 6")
+chisq = c(fitMeasures(fit.mod, "chisq.scaled"),
+          fitMeasures(fit.mod2, "chisq.scaled"), 
+          fitMeasures(fit.mod3, "chisq.scaled"), 
+          fitMeasures(fit.mod4, "chisq.scaled"), 
+          fitMeasures(fit.mod5, "chisq.scaled"), 
+          fitMeasures(fit.mod6, "chisq.scaled"))
+df = c(fitMeasures(fit.mod, "df.scaled"), 
+       fitMeasures(fit.mod2, "df.scaled"), 
+       fitMeasures(fit.mod3, "df.scaled"), 
+       fitMeasures(fit.mod4, "df.scaled"), 
+       fitMeasures(fit.mod5, "df.scaled"), 
+       fitMeasures(fit.mod6, "df.scaled"))
+pvalue = c(fitMeasures(fit.mod, "pvalue.scaled"), 
+           fitMeasures(fit.mod2, "pvalue.scaled"), 
+           fitMeasures(fit.mod3, "pvalue.scaled"), 
+           fitMeasures(fit.mod4, "pvalue.scaled"), 
+           fitMeasures(fit.mod5, "pvalue.scaled"), 
+           fitMeasures(fit.mod6, "pvalue.scaled"))
+cfi = c(fitMeasures(fit.mod, "cfi.robust"), 
+        fitMeasures(fit.mod2, "cfi.robust"), 
+        fitMeasures(fit.mod3, "cfi.robust"), 
+        fitMeasures(fit.mod4, "cfi.robust"), 
+        fitMeasures(fit.mod5, "cfi.robust"), 
+        fitMeasures(fit.mod6, "cfi.robust")) %>% round(3)
+tli = c(fitMeasures(fit.mod, "tli.robust"), 
+        fitMeasures(fit.mod2, "tli.robust"), 
+        fitMeasures(fit.mod3, "tli.robust"), 
+        fitMeasures(fit.mod4, "tli.robust"), 
+        fitMeasures(fit.mod5, "tli.robust"), 
+        fitMeasures(fit.mod6, "tli.robust")) %>% round(3)
+rmsea = c(fitMeasures(fit.mod, "rmsea.robust"), 
+          fitMeasures(fit.mod2, "rmsea.robust"), 
+          fitMeasures(fit.mod3, "rmsea.robust"), 
+          fitMeasures(fit.mod4, "rmsea.robust"), 
+          fitMeasures(fit.mod5, "rmsea.robust"), 
+          fitMeasures(fit.mod6, "rmsea.robust")) %>% round(3)
+srmr = c(fitMeasures(fit.mod, "srmr"), 
+         fitMeasures(fit.mod2, "srmr"), 
+         fitMeasures(fit.mod3, "srmr"), 
+         fitMeasures(fit.mod4, "srmr"), 
+         fitMeasures(fit.mod5, "srmr"), 
+         fitMeasures(fit.mod6, "srmr")) %>% round(3) 
+tabledata <- data.frame("Model"=model, "Chi.square"=chisq, "Df"=df, "p-value"=pvalue, 
+                        "CFI"=cfi, "TLI"=tli, "RMSEA"=rmsea, "SRMR"=srmr) 
+kable(tabledata, row.names = F, caption = "Fit indices (Modified models)") 
+```
+
+The model did not improve at all with this model. Let us cancel the previous step and specify the model so that the factor ELC and all the related observed variables are removed.   
+
+### Modified model 7:
+
+```{r}
+# Modified model 7 (remove ELC and related observed variables) 
+model_modif7 <-'
+# RA  =~ ROLEA1 + ROLEA2
+RCWO  =~ ROLEC1 + ROLEC2 + WORK1 + WORK2
+CC  =~ CCLIM1 + CCLIM2 + CCLIM3 + CCLIM4
+DM  =~ DEC1 + DEC2
+SS  =~ SSUP1 + SSUP2
+# PS  =~ PSUP1 + PSUP2
+SE  =~ SELF1 + SELF2 + SELF3
+# ELC  =~ ELC1 + ELC2 + ELC3 + ELC4 + ELC5
+EE  =~ EE1 + EE2 + EE3
+DP  =~ DP1 + DP2
+PA  =~ PA1 + PA2 + PA3
+
+SE ~ DM + SS
+# ELC ~ RCWO
+EE ~ RCWO + CC 
+DP ~ EE
+PA ~ SE + EE + DP
+
+EE1 ~~ EE2
+# ELC~~0*PA
+'
+
+fit.mod7 <- sem(model_modif7, data = E1, estimator="MLM")
+
+# Fit indices
+model <- c("Modified", "Modified 2", "Modified 3", 
+           "Modified 4", "Modified 5", "Modified 6", "Modified 7")
+chisq = c(fitMeasures(fit.mod, "chisq.scaled"),
+          fitMeasures(fit.mod2, "chisq.scaled"), 
+          fitMeasures(fit.mod3, "chisq.scaled"), 
+          fitMeasures(fit.mod4, "chisq.scaled"), 
+          fitMeasures(fit.mod5, "chisq.scaled"), 
+          fitMeasures(fit.mod6, "chisq.scaled"), 
+          fitMeasures(fit.mod7, "chisq.scaled"))
+df = c(fitMeasures(fit.mod, "df.scaled"), 
+       fitMeasures(fit.mod2, "df.scaled"), 
+       fitMeasures(fit.mod3, "df.scaled"), 
+       fitMeasures(fit.mod4, "df.scaled"), 
+       fitMeasures(fit.mod5, "df.scaled"), 
+       fitMeasures(fit.mod6, "df.scaled"), 
+       fitMeasures(fit.mod7, "df.scaled"))
+pvalue = c(fitMeasures(fit.mod, "pvalue.scaled"), 
+           fitMeasures(fit.mod2, "pvalue.scaled"), 
+           fitMeasures(fit.mod3, "pvalue.scaled"), 
+           fitMeasures(fit.mod4, "pvalue.scaled"), 
+           fitMeasures(fit.mod5, "pvalue.scaled"), 
+           fitMeasures(fit.mod6, "pvalue.scaled"), 
+           fitMeasures(fit.mod7, "pvalue.scaled"))
+cfi = c(fitMeasures(fit.mod, "cfi.robust"), 
+        fitMeasures(fit.mod2, "cfi.robust"), 
+        fitMeasures(fit.mod3, "cfi.robust"), 
+        fitMeasures(fit.mod4, "cfi.robust"), 
+        fitMeasures(fit.mod5, "cfi.robust"), 
+        fitMeasures(fit.mod6, "cfi.robust"), 
+        fitMeasures(fit.mod7, "cfi.robust")) %>% round(3)
+tli = c(fitMeasures(fit.mod, "tli.robust"), 
+        fitMeasures(fit.mod2, "tli.robust"), 
+        fitMeasures(fit.mod3, "tli.robust"), 
+        fitMeasures(fit.mod4, "tli.robust"), 
+        fitMeasures(fit.mod5, "tli.robust"), 
+        fitMeasures(fit.mod6, "tli.robust"), 
+        fitMeasures(fit.mod7, "tli.robust")) %>% round(3)
+rmsea = c(fitMeasures(fit.mod, "rmsea.robust"), 
+          fitMeasures(fit.mod2, "rmsea.robust"), 
+          fitMeasures(fit.mod3, "rmsea.robust"), 
+          fitMeasures(fit.mod4, "rmsea.robust"), 
+          fitMeasures(fit.mod5, "rmsea.robust"), 
+          fitMeasures(fit.mod6, "rmsea.robust"), 
+          fitMeasures(fit.mod7, "rmsea.robust")) %>% round(3)
+srmr = c(fitMeasures(fit.mod, "srmr"), 
+         fitMeasures(fit.mod2, "srmr"), 
+         fitMeasures(fit.mod3, "srmr"), 
+         fitMeasures(fit.mod4, "srmr"), 
+         fitMeasures(fit.mod5, "srmr"), 
+         fitMeasures(fit.mod6, "srmr"), 
+         fitMeasures(fit.mod7, "srmr")) %>% round(3) 
+tabledata <- data.frame("Model"=model, "Chi.square"=chisq, "Df"=df, "p-value"=pvalue, 
+                        "CFI"=cfi, "TLI"=tli, "RMSEA"=rmsea, "SRMR"=srmr) 
+kable(tabledata, row.names = F, caption = "Fit indices (Modified models)") 
+```
+
+With this model the model fit indices show relatively good fit: the Chi Squared -value (499.77), CFI (0.958) and TLI (0.95). On the other hand the RMSEA and SRMR values are not the best of all the models, but they are acceptable. We will use the previous model ("Modified 6") as our restructured baseline model since it has better values in RMSEA and SRMR. Here is a graph of it:
+
+```{r}
+semPaths(fit.mod6, what = "path", whatLabels = "hide", style = "lisrel", label.scale = F,
+         layout = "tree2", residuals = TRUE, nCharNodes = 0, rotation = 2, 
+         sizeMan = 5, sizeMan2= 2, sizeLat = 6, sizeLat2 = 4, esize = 1, label.cex = 0.4,
+         optimizeLatRes = TRUE, edge.label.cex=0.4, reorder=T, exoCov = FALSE)
+title("Figure 3: Restructured baseline model")
+```
+
+### Exercise 6.2
+
+Let us combine the groups and specify the common baseline (configural) model and draw the graphs.
+
+```{r}
+# Combine (merge) the data sets into one:
+
+combined <- merge(data.frame(E1, group = "calibration"),
+                data.frame(E2, group = "validation"), 
+                all = TRUE, sort = FALSE)
+```
+
+```{r}
+fit.conf <- sem(model_modif6, data = combined, group = "group", estimator="MLM")
+fit.conf
+```
+
+
+```{r}
+model <- c("Baseline model", "Configural model")
+chisq = c(fitMeasures(fit.mod6, "chisq.scaled"), 
+          fitMeasures(fit.conf, "chisq.scaled"))
+df = c(fitMeasures(fit.mod6, "df.scaled"), 
+       fitMeasures(fit.conf, "df.scaled"))
+pvalue = c(fitMeasures(fit.mod6, "pvalue.scaled"), 
+           fitMeasures(fit.conf, "pvalue.scaled"))
+cfi = c(fitMeasures(fit.mod6, "cfi.robust"), 
+        fitMeasures(fit.conf, "cfi.robust")) %>% round(3)
+tli = c(fitMeasures(fit.mod6, "tli.robust"), 
+        fitMeasures(fit.conf, "tli.robust")) %>% round(3)
+rmsea = c(fitMeasures(fit.mod6, "rmsea.robust"), 
+          fitMeasures(fit.conf, "rmsea.robust")) %>% round(3)
+srmr = c(fitMeasures(fit.mod6, "srmr"), 
+         fitMeasures(fit.conf, "srmr")) %>% round(3) 
+tabledata <- data.frame("Model"=model, "Chi.square"=chisq, "Df"=df, "p-value"=pvalue, 
+                        "CFI"=cfi, "TLI"=tli, "RMSEA"=rmsea, "SRMR"=srmr) 
+kable(tabledata, row.names = F, caption = "Fit indices")
+```
+
+The model fit indices in this multigroup configural model are almost as good (but not exactly) as in the calibration group's baseline model.
+
+### Exercise 6.3
+
+In the invariant model we fix factor means to zero.
+
+```{r}
+model_inv <-'
+RCWO  =~ ROLEC1 + ROLEC2 + WORK1 + WORK2
+CC  =~ CCLIM1 + CCLIM2 + CCLIM3 + CCLIM4
+DM  =~ DEC1 + DEC2
+SS  =~ SSUP1 + SSUP2
+SE  =~ SELF1 + SELF2 + SELF3
+ELC  =~ ELC1 + ELC2 + ELC3 + ELC4 + ELC5
+EE  =~ EE1 + EE2 + EE3
+DP  =~ DP1 + DP2
+PA  =~ PA1 + PA2 + PA3
+
+SE ~ DM + SS
+ELC ~ RCWO
+EE ~ RCWO + CC 
+DP ~ EE
+PA ~ SE + EE + DP
+
+EE1 ~~ EE2
+ELC~~0*PA
+
+RCWO + CC + DM + SS + SE + ELC + EE + DP + PA ~ 0
+'
+
+fit.inv <- sem(model_inv, data = combined, group = "group",
+               group.equal = c("loadings", "intercepts", "regressions") , estimator="MLM")
+fit.inv
+```
+
+```{r}
+model <- c("Configural model", "Invariant model")
+chisq = c(fitMeasures(fit.conf, "chisq.scaled"), 
+          fitMeasures(fit.inv, "chisq.scaled"))
+df = c(fitMeasures(fit.conf, "df.scaled"), 
+       fitMeasures(fit.inv, "df.scaled"))
+pvalue = c(fitMeasures(fit.conf, "pvalue.scaled"), 
+           fitMeasures(fit.inv, "pvalue.scaled"))
+cfi = c(fitMeasures(fit.conf, "cfi.robust"), 
+        fitMeasures(fit.inv, "cfi.robust")) %>% round(3)
+tli = c(fitMeasures(fit.conf, "tli.robust"), 
+        fitMeasures(fit.inv, "tli.robust")) %>% round(3)
+rmsea = c(fitMeasures(fit.conf, "rmsea.robust"), 
+          fitMeasures(fit.inv, "rmsea.robust")) %>% round(3)
+srmr = c(fitMeasures(fit.conf, "srmr"), 
+         fitMeasures(fit.inv, "srmr")) %>% round(3) 
+tabledata <- data.frame("Model"=model, "Chi.square"=chisq, "Df"=df, "p-value"=pvalue, 
+                        "CFI"=cfi, "TLI"=tli, "RMSEA"=rmsea, "SRMR"=srmr) 
+kable(tabledata, row.names = F, caption = "Fit indices")
+```
+
+The model fit indices are quite similar.
+
+```{r}
+anova(fit.conf, fit.inv)
+```
+
+The model that was specified step by step with the calibration group seems to have a good fit with the validation group also. It seems that the model is rather well built since the performed changes are not significant.

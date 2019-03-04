@@ -1,0 +1,408 @@
+---
+title: "Week 6"
+author: "Joonas Pitkanen"
+date: "21 helmikuuta 2019"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(psych)
+library(lavaan)
+library(semTools)
+library(sm)
+library(semPlot)
+library(dplyr)
+library(tidyr)
+library(knitr)
+library(kableExtra)
+setwd("C:/Users/Joonas/Documents/jatko-opintokurssit/sem/week6")
+
+calibration<-read.table("ELEMIND1.txt")
+head(calibration)
+names(calibration)<-c("ROLEA1","ROLEA2","ROLEC1","ROLEC2",
+                      "WORK1","WORK2","CCLIM1","CCLIM2",
+                      "CCLIM3","CCLIM4","DEC1","DEC2",
+                      "SSUP1","SSUP2","PSUP1","PSUP2",
+                      "SELF1","SELF2","SELF3","ELC1","ELC2",
+                      "ELC3","ELC4","ELC5", "EE1","EE2",
+                      "EE3","DP1","DP2","PA1","PA2","PA3")
+
+validation<-read.table("ELEMIND2.txt")
+names(validation)<-c("ROLEA1","ROLEA2","ROLEC1","ROLEC2",
+                       "WORK1","WORK2","CCLIM1","CCLIM2",
+                       "CCLIM3","CCLIM4","DEC1","DEC2",
+                       "SSUP1","SSUP2", "PSUP1","PSUP2",
+                       "SELF1","SELF2","SELF3","ELC1","ELC2",
+                       "ELC3","ELC4","ELC5", "EE1","EE2",
+                       "EE3","DP1","DP2","PA1","PA2","PA3")
+
+
+cv<-merge(data.frame(calibration, group="calibration"),
+              data.frame(validation, group="validation"), all=T, sort=F)
+```
+
+##Assignment 6.1.
+###Specification of the baseline model
+
+
+In this assignment, it is tested how well a model respecified with post hoc analyses actually fits the total data and how much was due to sample characteristics or other sources of error in the data. The exercise begins by specifying a baseline model for a calibration group derived from the total study population and after that the model is cross-validated by analyzing model invariance with another sub-sample from the same data.
+
+
+First, let's specify the hypothesized model for teacher burnout. The model has been discussed previously in the assignment of week 4 and is not described here in detail.
+
+
+
+```{r, warning=F}
+#Hypothesized model:
+H.model<-
+'#Factors
+EE=~EE1 + EE2 + EE3
+DP=~DP1+DP2
+PA=~PA1 + PA2 + PA3
+RA=~ROLEA1 + ROLEA2
+RC=~ROLEC1+ ROLEC2
+WO=~WORK1 + WORK2
+DM=~DEC1 + DEC2
+SS=~SSUP1 + SSUP2
+PS=~PSUP1 + PSUP2
+SE=~SELF1 + SELF2 + SELF3
+EC=~ELC1 + ELC2 + ELC3 + ELC4 + ELC5
+CC=~CCLIM1 + CCLIM2 + CCLIM3 + CCLIM4
+
+#Pathway regressions
+SE~DM + PS + SS
+EC~DM
+EE~CC + WO + RC
+DP~EE + RC
+PA~RA + SE + EC + EE + DP'
+
+hyp.sem<-sem(H.model, data=calibration, estimator="MLM")
+```
+
+The hypothesized model is presented in Figure 1. Residual and factor covariances are omitted.
+
+```{r, echo=F}
+semPaths(hyp.sem, style = "lisrel", layout = "tree3", optimizeLatRes = F,
+residuals = TRUE, rotation = 2, nCharNodes = 0, thresholds=F, intercepts=F,
+legend=FALSE, sizeMan = 8, edge.label.cex=0.5, sizeLat = 8, sizeMan2 = 2, sizeLat2 = 6, curve=1.0, esize = 1.0, label.cex = 0.5, exoCov = F,
+label.scale = T, width = 8, height = 8, reorder=T, node.height=0.8, node.width=0.8)
+title("Figure 1: Hypothesized model")
+```
+
+
+```{r, results='hide', warning=F}
+#Output omitted
+summary(hyp.sem, fit.measures=TRUE, standardized=TRUE)
+modindices(hyp.sem)
+standardizedSolution(hyp.sem)
+```
+
+
+The fit indices of all the models run while establishing the suitable baseline model are presented in Table 4. However, there is not even need to look at them yet: Modification indices gave an output warning that factors RC and WO have covariance of over 1, and, indeed, the standardized estimate for this covariance is 1.005. This means that the factors are essentially measuring the same thing, and we can thus combine them.
+
+
+```{r, include=F}
+Fit_index<-c("MLM Chi2", "df", "Robust CFI", "Robust TLI", "Robust RMSEA", "SRMR")
+Fit_measures<-c("chisq.scaled", "df", "cfi.robust", "tli.robust",
+                "rmsea.robust", "srmr")
+Hypothesized<- c(fitMeasures(hyp.sem)[Fit_measures]) %>% round(3)
+```
+
+
+```{r, results='hide'}
+#Output omitted
+#Modified model:
+M.model<-
+'#Factors
+EE=~EE1 + EE2 + EE3
+DP=~DP1+DP2
+PA=~PA1 + PA2 + PA3
+RA=~ROLEA1 + ROLEA2
+RCWO=~ROLEC1+ ROLEC2 + WORK1 + WORK2 #Combined factor
+DM=~DEC1 + DEC2
+SS=~SSUP1 + SSUP2
+PS=~PSUP1 + PSUP2
+SE=~SELF1 + SELF2 + SELF3
+EC=~ELC1 + ELC2 + ELC3 + ELC4 + ELC5
+CC=~CCLIM1 + CCLIM2 + CCLIM3 + CCLIM4
+
+#Pathway regressions
+SE~DM + PS + SS
+EC~DM
+EE~CC + RCWO
+DP~EE + RCWO
+PA~RA + SE + EC + EE + DP'
+
+mod.sem<-sem(M.model, data=calibration, estimator="MLM")
+summary(mod.sem)
+Modified_1<- c(fitMeasures(mod.sem)[Fit_measures]) %>% round(3)
+MI_Mod1<-modindices(mod.sem, minimum.value = 30)%>%
+  select('Y'=lhs, 'operator'=op, 'X'=rhs, MI=mi, EPC=epc)
+```
+
+The modified model is presented in Figure 2. Residual and factor covariances are omitted.
+
+```{r, echo=F}
+semPaths(mod.sem, style = "lisrel", layout = "tree3", 
+residuals = TRUE, rotation = 2, nCharNodes = 0, thresholds=T, intercepts=T,
+legend=FALSE, sizeMan = 8, edge.label.cex=0.5, sizeLat = 8, sizeMan2 = 2, sizeLat2 = 6, curve=1.0, esize = 1.0, label.cex = 0.5, exoCov = F,
+label.scale = T, width = 8, height = 8, reorder=T, node.height=0.8, node.width=0.8)
+title("Figure 2: Modified model")
+```
+
+```{r}
+kable(MI_Mod1, align=c('c', 'c', 'c', 'c', 'c'), caption='Modification indices of modified model', row.names=F)%>%
+  kable_styling(latex_options=c('hold_position'))
+```
+
+The model had a reasonable fit (Table 4). According to the Modification indices (Table 1), there were at least two parameters which could improve the fit. Let's first improve the model by adding a structural path from factor RCWO to EC.
+
+
+```{r, results='hide'}
+#Modified model 2:
+M.model2<-
+'#Factors
+EE=~EE1 + EE2 + EE3
+DP=~DP1+DP2
+PA=~PA1 + PA2 + PA3
+RA=~ROLEA1 + ROLEA2
+RCWO=~ROLEC1+ ROLEC2 + WORK1 + WORK2
+DM=~DEC1 + DEC2
+SS=~SSUP1 + SSUP2
+PS=~PSUP1 + PSUP2
+SE=~SELF1 + SELF2 + SELF3
+EC=~ELC1 + ELC2 + ELC3 + ELC4 + ELC5
+CC=~CCLIM1 + CCLIM2 + CCLIM3 + CCLIM4
+
+#Pathway regressions
+SE~DM + PS + SS
+EC~DM
+EE~CC + RCWO
+DP~EE + RCWO
+PA~RA + SE + EC + EE + DP
+EC~RCWO'
+mod.sem2<-sem(M.model2, data=calibration, estimator="MLM")
+summary(mod.sem2, fit.measures=TRUE, standardized=TRUE)
+Modified_2<- c(fitMeasures(mod.sem2)[Fit_measures]) %>% round(3)
+```
+
+```{r}
+anova(mod.sem, mod.sem2)
+MI_Mod2<-modindices(mod.sem2, minimum.value = 30)%>%
+  select('Y'=lhs, 'operator'=op, 'X'=rhs, MI=mi, EPC=epc)
+kable(MI_Mod2, align=c('c', 'c', 'c', 'c', 'c'), caption='Modification indices of modified model 2', row.names=F)%>%
+kable_styling(latex_options=c('hold_position'))
+```
+
+
+The modification index of covariance between EE1 and EE2 indicates that the model would improve if it would be estimated freely. Let's add the parameter into the model:
+
+```{r, results='hide'}
+#Output omitted
+M.model3<-
+'#Factors
+EE=~EE1 + EE2 + EE3
+DP=~DP1+DP2
+PA=~PA1 + PA2 + PA3
+RA=~ROLEA1 + ROLEA2
+RCWO=~ROLEC1+ ROLEC2 + WORK1 + WORK2
+DM=~DEC1 + DEC2
+SS=~SSUP1 + SSUP2
+PS=~PSUP1 + PSUP2
+SE=~SELF1 + SELF2 + SELF3
+EC=~ELC1 + ELC2 + ELC3 + ELC4 + ELC5
+CC=~CCLIM1 + CCLIM2 + CCLIM3 + CCLIM4
+
+#Pathway regressions
+SE~DM + PS + SS
+EC~DM
+EE~CC + RCWO
+DP~EE + RCWO
+PA~RA + SE + EC + EE + DP
+EC~RCWO
+
+#Residual covariance
+EE1~~EE2'
+
+mod.sem3<-sem(M.model3, data=calibration, estimator="MLM")
+summary(mod.sem3, fit.measures=TRUE, standardized=TRUE)
+Modified_3<- c(fitMeasures(mod.sem3)[Fit_measures]) %>% round(3)
+#Model improved significantly
+modindices(mod.sem3, minimum.value = 30)
+```
+
+
+```{r}
+anova(mod.sem2, mod.sem3)
+```
+
+
+According to the MLM$\chi^2$ difference test, the modification was reasonable. In addition, there were no MI's over 30, and the model fit was reasonable (Table 4).
+
+```{r, echo=F}
+regression_estimates<-filter(standardizedSolution(mod.sem3), op=='~') %>% 
+select('Y'=lhs, 'operator'=op, 'X'=rhs, 'Estimate'=est.std, '95% CI Lower'=ci.lower,
+       '95% CI Upper'=ci.upper)
+kable(regression_estimates, digits=2, row.names=FALSE, caption = "Estimates of the regression paths in modified model 3)", align=c('c', 'c', 'c', 'c', 'c'))%>%
+  kable_styling(latex_options=c('hold_position'))
+```
+
+However, there seems to be several statistically non-significant structural paths (Confidence intervals crossing 0) (Table x). These are left out of the final baseline model. 
+
+```{r, results='hide'}
+#Output omitted
+M.model4<-
+'#Factors
+EE=~EE1 + EE2 + EE3
+DP=~DP1+DP2
+PA=~PA1 + PA2 + PA3
+RA=~ROLEA1 + ROLEA2
+RCWO=~ROLEC1+ ROLEC2 + WORK1 + WORK2
+DM=~DEC1 + DEC2
+SS=~SSUP1 + SSUP2
+PS=~PSUP1 + PSUP2
+SE=~SELF1 + SELF2 + SELF3
+EC=~ELC1 + ELC2 + ELC3 + ELC4 + ELC5
+CC=~CCLIM1 + CCLIM2 + CCLIM3 + CCLIM4
+
+#Pathway regressions
+SE~DM + SS
+EE~CC + RCWO
+DP~EE
+PA~SE + EE + DP
+EC~RCWO
+
+#Residual covariance
+EE1~~EE2'
+
+mod.sem4<-sem(M.model4, data=calibration, estimator="MLM")
+summary(mod.sem4)
+Modified_4<- c(fitMeasures(mod.sem4)[Fit_measures]) %>% round(3)
+```
+
+Now, there are no specified pathways for factors RA and PA and thus these and the related observed variables are left out from the next model. 
+
+
+```{r, results='hide'}
+#Output omitted
+M.model5<-
+'#Factors
+EE=~EE1 + EE2 + EE3
+DP=~DP1+DP2
+PA=~PA1 + PA2 + PA3
+RCWO=~ROLEC1+ ROLEC2 + WORK1 + WORK2
+DM=~DEC1 + DEC2
+SS=~SSUP1 + SSUP2
+SE=~SELF1 + SELF2 + SELF3
+EC=~ELC1 + ELC2 + ELC3 + ELC4 + ELC5
+CC=~CCLIM1 + CCLIM2 + CCLIM3 + CCLIM4
+
+#Pathway regressions
+SE~DM + SS
+EE~CC + RCWO
+DP~EE
+PA~SE + EE + DP
+EC~RCWO
+
+#Residual covariance
+EE1~~EE2'
+
+mod.sem5<-sem(M.model5, data=calibration, estimator="MLM")
+summary(mod.sem5, fit.measures=TRUE, standardized=TRUE)
+Modified_5<- c(fitMeasures(mod.sem5)[Fit_measures]) %>% round(3)
+```
+
+From the output it was visible that there is an estimated covariance between factors PA and EC, which is not specified in the model but is done by default. This parameter is fixed to zero and the resulting model is used as a baseline for the invariance analysis.
+
+```{r, results='hide'}
+#Output omitted
+Baseline.model<-
+'#Factors
+EE=~EE1 + EE2 + EE3
+DP=~DP1+DP2
+PA=~PA1 + PA2 + PA3
+RCWO=~ROLEC1+ ROLEC2 + WORK1 + WORK2
+DM=~DEC1 + DEC2
+SS=~SSUP1 + SSUP2
+SE=~SELF1 + SELF2 + SELF3
+EC=~ELC1 + ELC2 + ELC3 + ELC4 + ELC5
+CC=~CCLIM1 + CCLIM2 + CCLIM3 + CCLIM4
+
+#Pathway regressions
+SE~DM + SS
+EE~CC + RCWO
+DP~EE
+PA~SE + EE + DP
+EC~RCWO
+
+#Residual covariance
+EE1~~EE2
+
+#Unwanted parameter fixed to zero
+PA~~0*EC'
+
+fit.baseline<-sem(Baseline.model, data=calibration, estimator="MLM")
+summary(fit.baseline, fit.measures=TRUE, standardized=TRUE)
+Baseline<- c(fitMeasures(fit.baseline)[Fit_measures]) %>% round(3)
+```
+
+The final baseline model is presented in figure 3.
+
+```{r, echo=F}
+semPaths(fit.baseline, style = "lisrel", layout = "tree", 
+residuals = TRUE, rotation = 2, nCharNodes = 0, thresholds=T, intercepts=T,
+legend=FALSE, sizeMan = 8, edge.label.cex=0.5, sizeLat = 8, sizeMan2 = 2, sizeLat2 = 6, curve=1.0, esize = 1.0, label.cex = 0.5, exoCov = F,
+label.scale = T, width = 8, height = 8, reorder=T, node.height=0.8, node.width=0.8)
+title("Figure 3: Baseline model")
+```
+
+```{r, echo=F}
+totable<-data.frame(Fit_index, Hypothesized, Modified_1, Modified_2, Modified_3, Modified_4, Modified_5, Baseline)
+kable(totable, caption='Modification indices of all the models run while establishing baseline model', align=c('l','c','c','c','c','c','c','c'), row.names=F)%>%
+  kable_styling(latex_options=c('scale_down', 'hold_position'))
+```
+
+##Assignment 6.2.
+###Forming and testing the configural model
+
+In lavaan syntax, it is enough to just run the baseline model with the combined data, and with option 'group':
+
+```{r, results='hide'}
+INV1<-sem(Baseline.model, data=cv, estimator='MLM', group="group")
+summary(INV1, fit.measures=T, standardized=T)
+Configural<- c(fitMeasures(INV1)[Fit_measures]) %>% round(3)
+```
+The values of $\chi^2$ test statistics for calibration group (722.373) and validation group (761.689) were pretty close, and overall the goodness of fit statistics of the configural model are similar to the baseline model (Table 5). This suggests that the model fits reasonably well for both groups.
+
+
+
+Let's test model invariance by constraining 1) factor loadings, 2) structural regression paths and 3) observed variable intercepts equal across groups (Note that also factor means are constrained equal, although they are by default estimated as 0: If they are not added in the syntax, lavaan acts as if they are estimated freely, even though they are 0, and this produces 9 degrees of freedom less than there should be).
+
+```{r, results='hide'}
+#Output omitted
+INV2<-sem(Baseline.model, data=cv,
+          estimator='MLM', group="group",
+          group.equal=c('loadings',
+                        'regressions',
+                        'intercepts',
+                        'means'))
+summary(INV2, fit.measures=T, standardized=T)
+Measurement<- c(fitMeasures(INV2)[Fit_measures]) %>% round(3)
+```
+```{r}
+anova(INV1,INV2)
+```
+
+
+
+The test wasn't statistically significant, which implies that the factor loadings, item intercepts and structural paths are invariant across groups. Thus, the cross-validation procedure suggests that the baseline model is correctly specified for the whole study population and the post hoc analyses have been correct. In addition, the baseline model fit was good (Table 5) and the factorial validity of this tested construct is good.
+
+
+
+```{r, echo=F}
+totable2<-data.frame(Fit_measures, Baseline, Configural, Measurement)
+kable(totable2, caption='Modification indices of the baseline model, configural model and measurement model', align=c('l','c','c','c'), row.names=F)%>%
+  kable_styling(latex_options=c('hold_position'))
+```
+

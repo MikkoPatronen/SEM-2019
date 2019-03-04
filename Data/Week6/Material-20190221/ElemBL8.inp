@@ -1,0 +1,46 @@
+TITLE: Validating Hypothesized Causal Structure for Calibration Group
+       Modified Baseline model (Byrne 2012, p. 268-)
+       Combined F2 and F3, re-numbered the factors
+       Added F8 ON F2
+       Added EE1 WITH EE2
+       Deleted n.s. params: F7 ON F6, F8 ON F4, F10 ON F2, F11 ON F1, F11 ON F8
+       Removed factors F1 and F6 and their items (no specified relations)!
+       Renamed factors, deleted items from USEVARS, "revised model" (Byrne, p.275)
+       Fine-tuning: remove unwanted parameter F9 WITH F6 (see p.272, 278).
+
+DATA: FILE IS "elemind1.dat";
+      FORMAT IS (19F4.2/13F4.2);
+
+VARIABLE:
+       NAMES ARE ROLEA1 ROLEA2 ROLEC1 ROLEC2 WORK1 WORK2
+       CCLIM1 CCLIM2 CCLIM3 CCLIM4 DEC1 DEC2 SSUP1 SSUP2
+       PSUP1 PSUP2 SELF1 SELF2 SELF3 ELC1 ELC2 ELC3 ELC4 ELC5
+       EE1 EE2 EE3 DP1 DP2 PA1 PA2 PA3;
+USEVARIABLES ARE ROLEC1 - SSUP2 SELF1 - PA3;
+
+ANALYSIS: TYPE = GENERAL;
+          ESTIMATOR IS MLM;
+
+MODEL:
+  F1 BY ROLEC1-WORK2;
+  F2 BY CCLIM1-CCLIM4;
+  F3 BY DEC1-DEC2;
+  F4 BY SSUP1-SSUP2;
+  F5 BY SELF1-SELF3;
+  F6 BY ELC1-ELC5;
+  F7 BY EE1-EE3;
+  F8 BY DP1-DP2;
+  F9 BY PA1-PA3;
+
+  F5 ON F3 F4;
+  F6 ON F1;
+  F7 ON F1 F2;
+  F8 ON F7;
+  F9 ON F5 F7 F8;
+
+  F9 WITH F6@0;
+
+  EE1 WITH EE2;
+
+OUTPUT: STDYX;
+

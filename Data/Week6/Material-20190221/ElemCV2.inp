@@ -1,0 +1,53 @@
+TITLE: Testing for Equivalence of causal Structure Across
+       Calibration and Validation groups
+       Constrained Equal: factor loadings, intercepts, structural paths
+       (Byrne 2012, p. 280)
+       
+DATA: FILE (Calibn) IS "elemind1.dat";
+      FILE (Validn) IS "elemind2.dat";
+      FORMAT IS (19F4.2/13F4.2);
+
+VARIABLE:
+       NAMES ARE ROLEA1 ROLEA2 ROLEC1 ROLEC2 WORK1 WORK2
+       CCLIM1 CCLIM2 CCLIM3 CCLIM4 DEC1 DEC2 SSUP1 SSUP2
+       PSUP1 PSUP2 SELF1 SELF2 SELF3 ELC1 ELC2 ELC3 ELC4 ELC5
+       EE1 EE2 EE3 DP1 DP2 PA1 PA2 PA3;
+USEVARIABLES ARE ROLEC1 - SSUP2 SELF1 - PA3;
+
+ANALYSIS: TYPE = GENERAL;
+          ESTIMATOR IS MLM;
+
+MODEL:
+  ! all factor loadings constrained equal:
+  F1 BY ROLEC1-WORK2;
+  F2 BY CCLIM1-CCLIM4;
+  F3 BY DEC1-DEC2;
+  F4 BY SSUP1-SSUP2;
+  F5 BY SELF1-SELF3;
+  F6 BY ELC1-ELC5;
+  F7 BY EE1-EE3;
+  F8 BY DP1-DP2;
+  F9 BY PA1-PA3;
+
+  ! all structural paths constrained equal:
+  F5 ON F3(1);
+  F5 ON F4(2);
+  F6 ON F1(3);
+  F7 ON F1(4);
+  F7 ON F2(5);
+  F8 ON F7(6);
+  F9 ON F5(7);
+  F9 ON F7(8);
+  F9 ON F8(9);
+
+  F9 WITH F6@0; ! technical exception, see p.272
+
+  EE1 WITH EE2; ! not tested
+
+  [F1 - F9@0]; ! factor means fixed to zero
+
+  ! now: no model specific parts.
+
+OUTPUT: MODINDICES TECH1;
+
+

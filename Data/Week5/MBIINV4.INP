@@ -1,0 +1,41 @@
+TITLE: Testing for Invariance of MBI across Elementary/Secondary Teachers
+       Partial Factor loading invariance: F2 BY ITEM11 and F2 BY ITEM15 (Byrne 2012, p. 218)
+       (InvModel.4)
+DATA:
+  FILE (Elem) IS "MBIELM1.DAT";
+  FILE (Sec)  IS "MBISEC1.DAT";
+
+VARIABLE: NAMES ARE ITEM1 - ITEM22;
+   USEVARIABLES ARE ITEM1 - ITEM22;
+
+ANALYSIS: ESTIMATOR = MLM;
+
+MODEL: ! "overall" model section
+  F1 BY ITEM1 - ITEM3 ITEM6 ITEM8 ITEM13 ITEM14 ITEM16 ITEM20;
+  F1 BY ITEM12; ! common cross-loading (from baseline models)
+  F2 BY ITEM5 ITEM10 ITEM11 ITEM15 ITEM22;
+  F3 BY ITEM4 ITEM7 ITEM9 ITEM12 ITEM17 - ITEM19 ITEM21;
+
+  ! common modifications (from baseline models)
+  ITEM6 WITH ITEM16;
+  ITEM1 WITH ITEM2;
+  ITEM10 WITH ITEM11;
+
+  [F1@0 F2@0 F3@0]; ! factor means constrained to zero
+
+! group-specific model parameters:
+
+MODEL Elem:
+  ITEM7 WITH ITEM4; ! specific residual covariance (from baseline model)
+
+MODEL Sec:
+  F1 BY ITEM11; ! specific cross-loading (from baseline model)
+  ITEM19 WITH ITEM9; ! specific residual covariance (from baseline model)
+
+  ! RELAXED constraints of the configural model REMOVED!
+
+  [ITEM1 - ITEM22]; ! intercepts NOT constrained equal
+  F2 BY ITEM11 ITEM15; ! relaxed again (not constrained equal)
+
+OUTPUT: MODINDICES (3.84);
+
