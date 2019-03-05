@@ -13,7 +13,7 @@ The subject of this exercise are the relations among the three dimensions of bur
 
 Let us import the data file in R, prepare the data and build the model according to the input file. 
 
-```{r}
+```{r echo=FALSE}
 elementary <- read.table("mbielm1.dat", header = FALSE)
 secondary <- read.table("mbisec1.dat", header = FALSE)
 names(elementary) <- names(secondary) <- paste("ITEM", 1:22, sep = "")
@@ -66,7 +66,7 @@ The fit indices of the initial models are shown in table 1. The scaling correcti
 
 ### Modification indices
 
-```{r}
+```{r echo=FALSE}
 modindices(fit_elem, minimum.value = 40, sort. = TRUE)
 modindices(fit_sec, minimum.value = 40, sort. = TRUE)
 ```
@@ -75,7 +75,7 @@ The results (modification indices MI and expected parameter change EPC) suggest 
 
 ### Model 2
 
-```{r}
+```{r echo=FALSE}
 model2 <- '
 EE =~ ITEM1 + ITEM2 + ITEM3 + ITEM6 + ITEM8 + ITEM13 
       + ITEM14 + ITEM16 + ITEM20 + ITEM12
@@ -119,7 +119,7 @@ The indices improved quite a lot for both models, but we need to continue modify
 
 ### Modification indices
 
-```{r}
+```{r echo=FALSE}
 modindices(fit_elem2, minimum.value = 30, sort. = TRUE)
 modindices(fit_sec2, minimum.value = 30, sort. = TRUE)
 ```
@@ -128,7 +128,7 @@ In the group of elementary teachers, items 4 and 7 have the highest values for t
 
 ### Model 3
 
-```{r}
+```{r echo=FALSE}
 model3elem <- '
 EE =~ ITEM1 + ITEM2 + ITEM3 + ITEM6 + ITEM8 + ITEM13 
       + ITEM14 + ITEM16 + ITEM20 + ITEM12
@@ -181,7 +181,7 @@ kable(tabledata, caption = "Fit indices (Model 3)")
 
 ### Modification indices
 
-```{r}
+```{r echo=FALSE}
 modindices(fit_elem3, minimum.value = 30, sort. = TRUE)
 modindices(fit_sec3, minimum.value = 30, sort. = TRUE)
 ```
@@ -190,7 +190,7 @@ The MI and EPC values imply that continuing modification is not needed for the e
 
 ### Model 4
 
-```{r}
+```{r echo=FALSE}
 model4sec <- '
 EE =~ ITEM1 + ITEM2 + ITEM3 + ITEM6 + ITEM8 + ITEM13 
       + ITEM14 + ITEM16 + ITEM20 + ITEM12 + ITEM11
@@ -226,7 +226,7 @@ kable(tabledata, caption = "Fit indices (Model 4)")
 Now we have achieved baseline models for both teacher groups. Let us print their fit indices:
 
 
-```{r}
+```{r echo=FALSE}
 group <- c("Elementary", "Secondary")
 chisq = c(fitMeasures(fit_elem3, "chisq.scaled"), 
           fitMeasures(fit_sec4, "chisq.scaled"))
@@ -258,7 +258,7 @@ kable(tabledata, caption = "Fit indices (Baseline models)")
 Let us combine the groups and specify the common baseline (configural) model and draw the graphs.
 
 
-```{r}
+```{r echo=FALSE}
 # Combine (merge) the data sets into one:
 
 elmsec <- merge(data.frame(elementary, group = "elementary"),
@@ -288,7 +288,7 @@ ITEM9 ~~ c(0,NA)*ITEM19 # only for sec
 '
 ```
 
-```{r}
+```{r echo=FALSE}
 fit_measures <- c("chisq.scaled", "df.scaled", "pvalue.scaled", 
                   "chisq.scaling.factor", "cfi.robust", "tli.robust", 
                   "rmsea.robust", "srmr_bentler")
@@ -300,8 +300,6 @@ fitMeasures(fitconfig, fit_measures)
 
 Graphs of the common baseline model (configural model) are presented below. The first graph is for the elementary school teachers and the second graph is for the secondary school teachers. 
 
-```{r}
+```{r echo=FALSE}
 semPaths(fitconfig, style="lisrel", intercepts=FALSE, mar=c(8,1,8,1)) 
 ```
-
-#### Unfortunately I did not have enough time to complete the rest of these tasks properly - I will have to check into these thoroughly while doing next weeks tasks!

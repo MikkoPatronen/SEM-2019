@@ -11,7 +11,7 @@ output:
 
 Let us import the data file in R, prepare the data and build the model according to the input file. Then let us draw the graph of the initial, full structural equation model.
 
-```{r}
+```{r echo=FALSE,warning=FALSE}
 wk4 <- read.table(file = "allsecondary.DAT")
 
 colnames(wk4) <- c("ROLEA1", "ROLEA2", "ROLEC1", "ROLEC2", "WORK1", "WORK2",
@@ -61,7 +61,7 @@ Then let us estimate the initial model using the robust MLM estimator and presen
 
 
 
-```{r}
+```{r echo=FALSE,warning=FALSE}
 # summary(fit, fit.measures = T)
 library(dplyr)
 msr <- c("chisq.scaled", "df.scaled", "pvalue.scaled", 
@@ -83,7 +83,7 @@ In the output Chi square statistic 1541.844 (df = 427, p = 0.000) suggests again
 
 Then let us print the modification indices (MI) for the model:
 
-```{r}
+```{r echo=FALSE,warning=FALSE}
 modindices(fit, minimum.value = 60, sort = TRUE, op="~")
 ```
 
@@ -91,7 +91,7 @@ modindices(fit, minimum.value = 60, sort = TRUE, op="~")
 F11 ~ F4 has the highest MI value. Following the lecture material we specify another model by adding F11 ~ F4:
 
 
-```{r}
+```{r echo=FALSE,warning=FALSE}
 model2 <- '
 # latent variables
 F1  =~ ROLEA1 + ROLEA2 + DEC2
@@ -122,7 +122,7 @@ print(M2)
 
 Let us list the indices from two first models so they can be compared:
 
-```{r}
+```{r echo=FALSE,warning=FALSE}
 tbl1 <- matrix(c(M1, M2), nrow=2, byrow = T)
 nms <- c("ChiSquare", "DF", "p", "ChiSq.sc.factor", "CFI", "TLI", "RMSEA")
 colnames(tbl1) <- nms
@@ -134,14 +134,14 @@ The model 2 seems to have better fit than the original model: Chi square statist
 
 
 Then let us calculate the Chi-Square Difference Test:
-```{r}
+```{r echo=FALSE,warning=FALSE}
 cd <- ((427*1.127)-(426*1.125))/(427-426)
 TRd <- (1541.844*1.127 - 1440.864*1.125)/cd
 TRd 
 ```
 
 
-```{r}
+```{r echo=FALSE,warning=FALSE}
 anova(fit2, fit)
 ```
 
@@ -153,7 +153,7 @@ Both tests show almost exactly the same results and indicate significant differe
 Next, we specify a third model by adding F12 ~ F5:
 
 
-```{r}
+```{r echo=FALSE,warning=FALSE}
 model3 <- '
 # latent variables
 F1  =~ ROLEA1 + ROLEA2 + DEC2
@@ -182,7 +182,7 @@ M3 <- c(fitMeasures(fit3)[msr]) %>% round(3)
 print(M3) 
 ```
 
-```{r}
+```{r echo=FALSE,warning=FALSE}
 tbl1 <- rbind(tbl1, M3)
 rownames(tbl1) <- c("M1", "M2", "M3")
 tbl1
@@ -190,7 +190,7 @@ tbl1
 
 The third model seems to improve the fit from the 2nd model slightly in the same manner as the second model improved the original model. 
 
-```{r}
+```{r echo=FALSE,warning=FALSE}
 cd2 = (426*1.125 - 425*1.125)/(426 - 425)
 TRd2 = (1440.864*1.125 - 1396.527*1.125)/cd2
 TRd2
@@ -203,7 +203,7 @@ The Chi-Square Difference Test indicates that the difference between models is s
 Next, we specify a fourth model by adding F9 ~ F2:
 
 
-```{r}
+```{r echo=FALSE,warning=FALSE}
 model4 <- '
 # latent variables
 F1  =~ ROLEA1 + ROLEA2 + DEC2
@@ -232,7 +232,7 @@ M4 <- c(fitMeasures(fit4)[msr]) %>% round(3)
 print(M4) 
 ```
 
-```{r}
+```{r echo=FALSE,warning=FALSE}
 tbl1 <- rbind(tbl1, M4)
 rownames(tbl1) <- c("M1", "M2", "M3", "M4")
 tbl1
@@ -246,7 +246,7 @@ The fourth model seems to improve the fit from the third model slightly in the s
 Next, we specify a fifth model by adding F9 ~ F8:
 
 
-```{r}
+```{r echo=FALSE,warning=FALSE}
 model5 <- '
 # latent variables
 F1  =~ ROLEA1 + ROLEA2 + DEC2
@@ -274,7 +274,7 @@ fit5 <- sem(model5, data = wk4, estimator = "MLM")
 M5 <- c(fitMeasures(fit5)[msr]) %>% round(3)
 ```
 
-```{r}
+```{r echo=FALSE,warning=FALSE}
 tbl1 <- rbind(tbl1, M5)
 rownames(tbl1) <- c("M1", "M2", "M3", "M4", "M5")
 tbl1
@@ -288,7 +288,7 @@ The fifth model seems to improve the fit from the fourth model slightly in the s
 Next, we specify a sixth model by adding F10 ~ F8:
 
 
-```{r}
+```{r echo=FALSE,warning=FALSE}
 model6 <- '
 # latent variables
 F1  =~ ROLEA1 + ROLEA2 + DEC2
@@ -316,7 +316,7 @@ fit6 <- sem(model6, data = wk4, estimator = "MLM")
 M6 <- c(fitMeasures(fit6)[msr]) %>% round(3)
 ```
 
-```{r}
+```{r echo=FALSE,warning=FALSE}
 tbl1 <- rbind(tbl1, M6)
 rownames(tbl1) <- c("M1", "M2", "M3", "M4", "M5", "M6")
 tbl1
@@ -329,7 +329,7 @@ The sixth model seems to improve the fit from the fifth model slightly in the sa
 Next, we specify a seventh model by adding F12 ~ F2:
 
 
-```{r}
+```{r echo=FALSE,warning=FALSE}
 model7 <- '
 # latent variables
 F1  =~ ROLEA1 + ROLEA2 + DEC2
@@ -357,7 +357,7 @@ fit7 <- sem(model7, data = wk4, estimator = "MLM")
 M7 <- c(fitMeasures(fit7)[msr]) %>% round(3)
 ```
 
-```{r}
+```{r echo=FALSE,warning=FALSE}
 tbl1 <- rbind(tbl1, M7)
 rownames(tbl1) <- c("M1", "M2", "M3", "M4", "M5", "M6", "M7")
 tbl1
@@ -371,7 +371,7 @@ The seventh model seems to improve the fit from the sixth model slightly in the 
 The final model 8 is specified by removing F8 ~ F7 and F12 ~ F1:
 
 
-```{r}
+```{r echo=FALSE,warning=FALSE}
 model8 <- '
 # latent variables
 F1  =~ ROLEA1 + ROLEA2 + DEC2
@@ -399,7 +399,7 @@ fit8 <- sem(model8, data = wk4, estimator = "MLM")
 M8 <- c(fitMeasures(fit8)[msr]) %>% round(3)
 ```
 
-```{r}
+```{r echo=FALSE,warning=FALSE}
 tbl1 <- rbind(tbl1, M8)
 rownames(tbl1) <- c("M1", "M2", "M3", "M4", "M5", "M6", "M7", "M8")
 tbl1
@@ -412,7 +412,7 @@ The final model seems to not improve the fit from the seventh model. All in all 
 Let us draw the graphs of the original and the final models:
 
 
-```{r}
+```{r echo=FALSE,warning=FALSE}
 semPaths(fit, what = "std", style = "lisrel", optimizeLatRes = TRUE,
          layout = "tree2", residuals = FALSE, nCharNodes = 0, rotation = 2, 
          sizeMan = 6, sizeMan2= 4, sizeLat = 7, esize = 1, label.cex = 1.2,

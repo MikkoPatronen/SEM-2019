@@ -25,7 +25,7 @@ Alternative hypothesis is that self-concept is not a multidimensional construct 
 
 Let us bring the data in R and prepare it for analysis:
 
-```{r}
+```{r echo=FALSE,warning=FALSE}
 library(lavaan)
 library(semPlot)
 
@@ -46,7 +46,7 @@ Then let us specify the model, visualize the model structure:
 
 
 
-```{r}
+```{r echo=FALSE,warning=FALSE}
 modelF4 <- "
 GSC =~ SDQ2N01 + SDQ2N13 + SDQ2N25 + SDQ2N37
 ASC =~ SDQ2N04 + SDQ2N16 + SDQ2N28 + SDQ2N40
@@ -79,7 +79,7 @@ The null hypothesis is that SC has two factors:
 
 Alternative hypothesis is that SC does not have two factors. Let us form the model and visualize the model structure:
 
-```{r}
+```{r echo=FALSE,warning=FALSE}
 modelF2 <- "
 GSC =~ SDQ2N01 + SDQ2N13 + SDQ2N25 + SDQ2N37
 ASC =~ SDQ2N04 + SDQ2N16 + SDQ2N28 + SDQ2N40
@@ -105,7 +105,7 @@ The null hypothesis is that SC is unidimensional (only one SC factor).
 
 Alternative hypothesis is that SC is not unidimensional. Let us form the model and visualize the model structure:
 
-```{r}
+```{r echo=FALSE,warning=FALSE}
 modelF1 <- "
 SC =~ SDQ2N01 + SDQ2N13 + SDQ2N25 + SDQ2N37
 + SDQ2N04 + SDQ2N16 + SDQ2N28 + SDQ2N40

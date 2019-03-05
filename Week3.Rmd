@@ -24,7 +24,7 @@ Alternative hypothesis is that burnout is not a multidimensional construct compo
 
 Let us bring the data in R and prepare it for analysis:
 
-```{r}
+```{r echo=FALSE,warning=FALSE}
 library(psych)
 library(likert)
 library(lavaan)
@@ -39,13 +39,13 @@ colnames(viikko3) <- c("ITEM1", "ITEM2", "ITEM3", "ITEM4", "ITEM5",
 
 Then let us do some EDA to see whether the items are normally distributed: 
 
-```{r}
+```{r echo=FALSE,warning=FALSE}
 describe(viikko3)
 ```
 
 The skewness and kurtosis values for basicly all the items indicate that none of the items are normally distributed and therefore the maximum likelihood estimators are not suited for the task. Let us visualize the distributions of the items:
 
-```{r}
+```{r echo=FALSE,warning=FALSE}
 vk3 <- viikko3
 
 vk3$ITEM1 = factor(vk3$ITEM1,
@@ -128,7 +128,7 @@ The visualization also shows that the items are not normally distributed.
 
 Then let us specify the model according to instructions and visualize the model structure using ML estimator:
 
-```{r}
+```{r echo=FALSE,warning=FALSE}
 model_MBI <- "
 EE =~ ITEM1 + ITEM2 + ITEM3 + ITEM6 + ITEM8 + ITEM13 + ITEM14 + ITEM16 + ITEM20
 DP =~ ITEM5 + ITEM10 + ITEM11 + ITEM15 + ITEM22
@@ -137,7 +137,7 @@ PA =~ ITEM4 + ITEM7 + ITEM9 + ITEM12 + ITEM17 + ITEM18 + ITEM19 + ITEM21
 ```
 
 
-```{r}
+```{r echo=FALSE,warning=FALSE}
 fit_ML <- cfa(model_MBI, data = viikko3)
 summary(fit_ML, fit.measures = T)
 
@@ -151,7 +151,7 @@ The hypothesis that burnout has three factors is not supported by the results (c
 
 Then let us test the model fit with MLM estimator:
 
-```{r}
+```{r echo=FALSE,warning=FALSE}
 fit_MLM <- cfa(model_MBI, data = viikko3, estimator="MLM")
 summary(fit_MLM, fit.measures = T)
 
@@ -159,8 +159,3 @@ semPaths(fit_MLM, layout='tree2')
 ```
 
 With this estimator the hypothesis that burnout has three factors is also not supported by the results (chi square statistic = 567.753, p = 0.000), which suggest that the fit of the data to the model is not adequate and null hypothesis should be rejected. Here the indices increase small amounts CFI (0.865), TLI (0.849) and RMSEA decreases small amount (0.076) but still these indices support against hypothesis.
-
-
-#### Exercise 3.2
-
-Unfortunately I wasted a huge amount of time with solving R error message that had to do with lavaan and sem -packages. The sem -package was causing problems that made R to not "find  file" when using cfa. I managed to solve this problem just in time before deadline but unfortunately I did not have enough time to do this second excercise. But I learned a lot of R instead :D
